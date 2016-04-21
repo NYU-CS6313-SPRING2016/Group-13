@@ -364,7 +364,7 @@ function type(d) {
         var country_list = [];
 
         var tweets = [];
-        d3.json("data.json", function(error, result)
+        d3.json("gamergate.json", function(error, result)
         {
             if (error) throw error;
             tweets = result;
