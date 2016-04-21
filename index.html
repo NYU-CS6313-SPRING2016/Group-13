@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+    body {
+      font: 12px sans-serif;
+    }
+    .stroke {
+        fill: none;
+        stroke: #000;
+        stroke-width: 3px;
+    }
+
+    .fill {
+        fill: #fff;
+    }
+
+    .graticule {
+        fill: none;
+        stroke: #777;
+        stroke-width: .5px;
+        stroke-opacity: .5;
+    }
+
+    .land {
+        fill: #888;
+    }
+
+    .boundary {
+        fill: none;
+        stroke: #fff;
+        stroke-width: .5px;
+    }
+
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+
+    .x.axis path {
+      display: none;
+    }
+
+    .line {
+      fill: none;
+      stroke: steelblue;
+      stroke-width: 1.5px;
+    }
+
+    #tweets {
+      display: inline-block;
+      width: 300px;
+      height: 600px;
+      overflow:hidden;
+      overflow-y:scroll;
+      stroke: #000;
+      border:solid 1px black;
+    }
+
+    #listtweets { 
+        padding:0px;
+    }
+    
+    li {    
+        list-style: none;
+        padding:8px;
+        border:solid 1px black;
+    }
+    
+    #maindiv {
+        position:relative;
+    }    
+    
+    #tooltip{
+        position:absolute;
+        background-color:rgba(255,255,255,0.8);
+        padding:5px;
+        border:solid 1px black;
+        visibility:hidden;
+        transition: all 0.5s;
+        top:0px;
+        left:0px;
+        z-index:1000;
+        width: 80px;
+        float:left;
+        font-size: 12px;
+    }
+    
+    #graphName{
+        
+        float:right;
+    }
+    
+    
+    
+    
+    svg {
+        border:solid 1px black;
+    }
+    
+    #title {
+        background-color: black;
+        color: white;
+        padding: 10px;
+    }
+    h1 {
+        text-align: center ;
+        background-color:black;
+        color: white;
+        font-weight: bold;
+        margin:0;
+    }
+
+</style>
+<body>
+    
+    <div id="title">
+        <h1>Visualizing Female Game Developer Harassment on Twitter</h1>
+    </div>
+    
+    <div id="maindiv">
+        <div id="tweets">
+            <h1 id="tweeth">Tweets</h1>
+            <ul id="listtweets"></ul>
+        </div>
+        
+        <svg id="chartmap"></svg>
+        
+        <div id="graphName"><h1>Amount of tweets</h1><svg id="chartotaltweets"></svg></div>
+        <div id="tooltip">Tooltip</div>
+    </div>
+    
+</body>
+
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+
+var gdata = [], nestedData;
+        var printableData = [];
+             
+   var gmargin = {top: 20, right: 20, bottom: 30, left: 90},
+    gwidth = 500 - gmargin.left - gmargin.right,
+    gheight = 570 - gmargin.top - gmargin.bottom;
+
+    var formatDec = d3.format(".2f");
+    var formatDate = d3.time.format("%m/%d/%Y");
+    var x = d3.time.scale()
+        .range([0, gwidth]);
+
+    var y = d3.scale.linear()
+        .range([gheight, 0]);
+
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom");
+
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left");
+
+
+    var line = d3.svg.line()
+        .x(function(d) { return x(d.time); })
+        .y(function(d) { return y(d.size); });
+
+    var linePos = d3.svg.line()
+        .x(function(d) { return x(d.time); })
+        .y(function(d) { return y(d.pos); });
+
+    var lineNeg = d3.svg.line()
+        .x(function(d) { return x(d.time); })
+        .y(function(d) { return y(d.neg); });
+
+
+    d3.json("data.json", function(error,result) {
+        result = type(result);
+        gdata = result;
+        console.log("here");
+        console.log(gdata);
+        printTweets(gdata);
+        nestedData = d3.nest()
+            .key(function(d) { return d.time; })
+            .entries(result);
+    
+        var nestedDataSent = d3.nest()
+            .key(function(d) { return d.time; })
+            .key(function(d) { return d.sentiment; })
+            .entries(result);
+    
+        //printableData = new Array(nestedData.length);
+    
+        var dates = new Array(gdata.length);
+        for(var i =0; i < gdata.length; i++) {
+            dates[i] = gdata[i].time;
+            //console.log(gdata[i]);
+        }
+    
+        for(var i =0; i < nestedData.length; i++) {
+            var p = 0, n = 0;
+            for(var j = 0; j < nestedData[i].values.length; j++) {
+                if(nestedData[i].values[j].sentiment > 0) {
+                    p++;
+                } else if(nestedData[i].values[j].sentiment < 0.0) {
+                    n++;
+                }
+            }
+            printableData.push({
+                size:nestedData[i].values.length,
+                time:nestedData[i].key,
+                pos:p / nestedData[i].values.length,
+                neg:n / nestedData[i].values.length
+            });
+        }
+    
+        console.log("result "+ gdata.length);
+        console.log(nestedData);
+        //console.log(printableData);
+         
+        minDate = d3.min(dates);
+        maxDate = d3.max(dates);
+        console.log(minDate);
+        console.log(maxDate);
+
+        if (error) throw error;
+
+        printGraph(printableData);
+}); 
+    
+    
+/*function highlight(gdata) {
+    console.log(viz.selectAll("circle"));
+    viz.selectAll("circle").style("stroke", function(d,i) { return d.name==name ? "black" : undefined});
+    list.selectAll("li")
+        .style("background-color", function(d,i) {console.log(d.name); return d.name == name ? "black" : undefined})
+        .style("color",function(d,i){return d.name == name ? "white" : undefined});
+}
+
+function hide() {
+   viz.selectAll("circle").style("stroke", undefined);
+   list.selectAll("li")
+        .style("background-color", undefined)
+        .style("color",undefined);
+}*/
+    
+function printGraph(printableData) {
+  
+    x.domain(d3.extent(printableData, function(d) { return d.time; }));
+    y.domain(d3.extent(printableData, function(d) { return d.size; }));
+    
+    var svg = d3.select("#chartotaltweets")//("body").append("svg")
+        .attr("width", gwidth + gmargin.left + gmargin.right)
+        .attr("height", gheight + gmargin.top + gmargin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + gmargin.left + "," + gmargin.top + ")");
+
+    svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + gheight + ")")
+      .call(xAxis)
+    .append("text")
+      .attr("x", gwidth)
+      .attr("dx", ".71em")
+      .style("text-anchor", "end")
+      .text("Date");
+
+    svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Amount of tweets");
+
+   
+    
+   svg.append("path")
+      .attr("class", "line")
+      .attr("d", line(printableData));
+    
+    svg.selectAll(".dot")
+	  .data(printableData)
+	  .enter().append("circle")
+	  .attr('class', 'datapoint')
+	  .attr('cx', function(d) { return x(d.time); })
+	  .attr('cy', function(d) { return y(d.size); })
+	  .attr('r', 6)
+	  .attr('fill', 'white')
+	  .attr('stroke', 'steelblue')
+	  .attr('stroke-width', '3')
+      .on('mouseenter',function(d,i){ 
+        //tip.show
+            //highlight(d);
+        console.log(d3.event.clientX+","+d3.event.clientY);
+            d3.select("#tooltip").style({
+                                        position:"absolute",
+                                        visibility: "visible",
+                                         opacity:1,
+                                        top:d3.event.clientY + "px",
+                                        left:d3.event.clientX + "px"    
+                                        }).html(
+                                            "Pos: "+formatDec(d.pos)+"<br>"+
+                                            "Neg: "+formatDec(d.neg)+"\t\n" +
+                                            "Total: "+d.size);
+        })
+        .on('mouseleave',function(d,i){
+            //tip.hide
+           // hide();
+            d3.select("#tooltip").style({visibility: "hidden",
+                                        opacity:0});
+        })
+
+/*        svg.append("path")
+      .attr("class", "line")
+      .attr("d", linePos(printableData));
+
+    svg.append("path")
+      .attr("class", "line")
+      .attr("d", lineNeg(printableData));*/
+}
+    
+function printTweets(gdata) {
+    //list of tweets
+    list = d3.select("#listtweets").selectAll("li")
+        .data(gdata, function(d) {
+            return d.username+": "+d.tweet + " "+d.time;
+        })
+    ;
+    list.enter()
+        .append("li")
+        .html(function(d) {return "<b>"+d.username+":</b><br> "+d.tweet + " <br>"}).attr("width",50);
+
+    list.exit().remove();
+}
+
+function type(d) {
+    console.log(d);
+    for(var i = 0; i < d.length; i++) {
+        console.log("time"+d[i].time);
+        d[i].time = +(formatDate.parse(d[i].time));
+        d[i].support = +d[i].support;
+        d[i].sentiment = +d[i].sentiment;
+        console.log("time2"+d[i].time);
+    }
+    console.log("done");
+  return d;
+}
+    
+    
+    
+    
+    
+    //-----------------------------------
+    
+    
+     var width = 750,
+            height = 580;
+
+        var country_list = [];
+
+        var tweets = [];
+        d3.json("gamergate.json", function(error, result)
+        {
+            if (error) throw error;
+            tweets = result;
+        });
+
+        var color = d3.scale.linear()
+           .domain([-2, -1, 0])
+           .range(["red", "lightblue", "blue"]);
+
+        var projection = d3.geo.mercator()
+                .scale(110)
+                .translate([width / 2, height / 2])
+                .precision(.1);
+
+        var path = d3.geo.path()
+                .projection(projection);
+
+        var graticule = d3.geo.graticule();
+
+        var svg = d3.select("#chartmap")//select("body").append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+        svg.append("defs").append("path")
+                .datum({type: "Sphere"})
+                .attr("id", "sphere")
+                .attr("d", path);
+
+        svg.append("use")
+                .attr("class", "stroke")
+                .attr("xlink:href", "#sphere");
+
+        svg.append("use")
+                .attr("class", "fill")
+                .attr("xlink:href", "#sphere");
+
+        svg.append("path")
+                .datum(graticule)
+                .attr("class", "graticule")
+                .attr("d", path);
+
+        loadCountryList();
+        console.log(showList());
+        draw();
+
+        /*FUNCTIONS*/
+        function loadCountryList()
+        {
+            d3.tsv("world-country-names.tsv", function(error, data) {
+                if (error) throw error;
+                data.forEach(function(d) {
+                    var sentiment = countCountrySentiment(tweets, d.name);
+                    var c = new Country(d.id, d.name.toLowerCase(), sentiment);
+                    country_list.push(c);
+                });
+            });
+        }
+
+        function showList()
+        {
+            country_list.forEach(function(d) {
+
+            });
+            return country_list;
+        }
+
+        function countCountrySentiment(tweets, countryName)
+        {
+            var sentiment = 0.0;
+            var sentimentAccumulator = 0.0;
+            var sentimentCount = 0.0;
+            var sentimentAvg = 0.0;
+
+            for(var i = 0; i < tweets.length; i++)
+            {
+                if(tweets[i].location.length > 0) {
+                    var c1 = tweets[i].location.toLowerCase();
+                    var c2 = countryName.toLowerCase();
+                    if (c1.localeCompare(c2) == 0)
+                    {
+                        sentimentAccumulator = sentimentAccumulator + parseFloat(tweets[i].sentiment);
+                        sentimentCount = sentimentCount + 1.0;
+                    }
+                }
+            }
+
+            if(sentimentCount > 0.0) {
+                sentimentAvg = sentimentAccumulator / sentimentCount;
+            }else{
+                sentimentAvg = 10;
+            }
+            sentiment = Idistance(sentimentAvg);
+            console.log(sentiment);
+            return sentiment;
+        }
+
+        function Idistance(value)
+        {
+            var result = value - 1.0;
+            return result;
+        }
+
+        function countUSA(locations)
+        {
+            for(var i = 0; i < locations.length; i++)
+            {
+                var string = locations[i].location;
+                substring = "france";
+                if(string.indexOf(substring) > -1)
+                {
+                    count++;
+                }
+            }
+        }
+
+        function colorCountry(country) {
+            if (country.id == 643) {
+                return '#00AA00';
+            } else {
+                return "#000000";
+            }
+        }
+
+        function getSentimentFromCountry(countryId)
+        {
+            var sentiment = 0.0;
+            country_list.forEach(function(d) {
+               if (d.id == countryId)
+               {
+                   sentiment = d.sentiment;
+               }
+            });
+            return sentiment;
+        }
+
+        function newColorCountry(country) {
+
+            var sentiment = getSentimentFromCountry(country.id);
+            var newcolor;
+            if (sentiment == 9) {
+                return '#D3D3D3';
+            }
+            newcolor = color(sentiment);
+
+            return newcolor;
+        }
+
+        function draw()
+        {
+            d3.json("world-110m2.json", function(error, world) {
+                if (error) throw error;
+
+                var countries = topojson.feature(world, world.objects.countries).features,
+                        neighbors = topojson.neighbors(world.objects.countries.geometries);
+
+                svg.selectAll(".country")
+                        .data(countries)
+                        .enter().insert("path", ".graticule")
+                        .attr("class", "country")
+                        .attr("d", path)
+                        .style("fill", newColorCountry);
+
+                svg.insert("path", ".graticule")
+                        .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+                        .attr("class", "boundary")
+                        .attr("d", path);
+
+            });
+
+        }
+
+        /*CLASS FUNCTIONS*/
+        function Country (id, name, sentiment) {
+            this.id = id;
+            this.name = name;
+            this.sentiment = sentiment;
+            this.getCountryInfo = function() {
+                return this.id + ' ' + this.name;
+        };
+   }
+
+    d3.select(self.frameElement).style("height", height + "px");
+    
+
+</script>
