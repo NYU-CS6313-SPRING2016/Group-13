@@ -1,5 +1,5 @@
 # Visualizing Female Game Developer Harassment on Twitter
-A visualization tool to show sentiment analysis of the tweets about female game developers. This project is done 
+This is a visual analytics tool to show the sentiment analysis of tweets about female game developers using D3.js.
 
 ## Authors
 Ahmed Khalifa ([aak538@nyu.edu](mailto:aak538@nyu.edu))
