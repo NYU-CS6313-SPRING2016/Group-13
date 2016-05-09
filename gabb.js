@@ -1,7 +1,7 @@
 var gdata = [], nestedData;
 var printableData = [];
 
-var gmargin = {top: 20, right: 20, bottom: 30, left: 90},
+var gmargin = {top: 20, right: 20, bottom: 30, left: 40},
     gwidth = document.getElementById('rightPanel').offsetWidth - gmargin.left - gmargin.right,
     gheight = document.getElementById('rightPanel').offsetHeight / 2 - 
         document.getElementById('tweetTimeLabel').offsetHeight - 
