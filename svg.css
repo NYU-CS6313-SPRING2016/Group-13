@@ -1,0 +1,40 @@
+.fill {
+    fill: white;
+}
+
+.graticule {
+    fill: none;
+    stroke: #777;
+    stroke-width: .5px;
+    stroke-opacity: .5;
+}
+
+.land {
+    fill: #888;
+}
+
+.boundary {
+    fill: none;
+    stroke: #fff;
+    stroke-width: .5px;
+}
+
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.x.axis path {
+    display: none;
+}
+
+.line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 1.5px;
+}
+
+.bar:hover {
+  fill: brown;
+}
