@@ -5,7 +5,7 @@ function drawHistograms(){
         document.getElementById('hashUserLabel').offsetHeight;
     var barHeight = 20;
     var gapBetween = 5;
-    var labelSpaces = 100;
+    var labelSpaces = 130;
     
     var tweets = [];
     var hashtagData = [];
@@ -100,7 +100,7 @@ function drawHistograms(){
             .range([0, width - labelSpaces - margin.right]);
 
         var yScale = d3.scale.linear()
-            .range([height, 0]);
+            .range([usernameData.length * (barHeight + gapBetween) + margin.top + margin.bottom, 0]);
 
         var yAxis = d3.svg.axis()
             .scale(yScale)
@@ -110,8 +110,8 @@ function drawHistograms(){
 
         // Specify the chart area and dimensions
         var chart = d3.select("#usernameHistogram")
-            .attr("width", width - margin.left - margin.right)
-            .attr("height", height);
+            .attr("width", width - margin.right)
+            .attr("height", usernameData.length * (barHeight + gapBetween) + margin.top + margin.bottom);
 
         // Create bars
         var bar = chart.selectAll("g")
@@ -142,7 +142,7 @@ function drawHistograms(){
         // Draw labels
         bar.append("text")
             .attr("class", "label")
-            .attr("x", function(d) { return -labelSpaces + 5; })
+            .attr("x", function(d) { return -labelSpaces; })
             .attr("y", barHeight / 2)
             .attr("dy", ".35em")
             .text(function(d,i) {return labels[i];});
@@ -166,7 +166,7 @@ function drawHistograms(){
             .range([0, width - labelSpaces - margin.left]);
 
         var yScale = d3.scale.linear()
-            .range([height, 0]);
+            .range([hashtagData.length * (barHeight + gapBetween) + margin.top + margin.bottom, 0]);
 
         var yAxis = d3.svg.axis()
             .scale(yScale)
@@ -176,15 +176,15 @@ function drawHistograms(){
 
         // Specify the chart area and dimensions
         var chart = d3.select("#hashtagHistogram")
-            .attr("width", width - margin.left - margin.right)
-            .attr("height", height);
+            .attr("width", width - margin.left)
+            .attr("height", hashtagData.length * (barHeight + gapBetween) + margin.top + margin.bottom);
 
         // Create bars
         var bar = chart.selectAll("g")
             .data(zippedData)
             .enter().append("g")
             .attr("transform", function(d, i) {
-              return "translate(" + labelSpaces + "," + (i * (barHeight + gapBetween) + margin.top) + ")";
+              return "translate(" + (labelSpaces + margin.left) + "," + (i * (barHeight + gapBetween) + margin.top) + ")";
             });
 
         // Create rectangles of the correct width
@@ -208,14 +208,14 @@ function drawHistograms(){
         // Draw labels
         bar.append("text")
             .attr("class", "label")
-            .attr("x", function(d) { return -labelSpaces + 5; })
+            .attr("x", function(d) { return -labelSpaces + margin.left; })
             .attr("y", barHeight / 2)
             .attr("dy", ".35em")
             .text(function(d,i) {return labels[i];});
 
         chart.append("g")
               .attr("class", "y axis")
-              .attr("transform", "translate(" + labelSpaces + ", " + -gapBetween/2 + ")")
+              .attr("transform", "translate(" + (labelSpaces + margin.left) + ", " + -gapBetween/2 + ")")
               .call(yAxis);
     }
     load();
