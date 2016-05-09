@@ -1,8 +1,5 @@
 function drawHistograms(){
-    var margin = {left:5, right:5, top:5, bottom:5};
     var width = document.getElementById('rightPanel').offsetWidth / 2;
-    var height = document.getElementById('rightPanel').offsetHeight / 2 - 
-        document.getElementById('hashUserLabel').offsetHeight;
     var barHeight = 20;
     var gapBetween = 5;
     var labelSpaces = 130;
@@ -97,10 +94,10 @@ function drawHistograms(){
         
         var xScale = d3.scale.linear()
             .domain([0, d3.max(zippedData)])
-            .range([0, width - labelSpaces - margin.right]);
+            .range([0, width - labelSpaces]);
 
         var yScale = d3.scale.linear()
-            .range([usernameData.length * (barHeight + gapBetween) + margin.top + margin.bottom, 0]);
+            .range([usernameData.length * (barHeight + gapBetween), 0]);
 
         var yAxis = d3.svg.axis()
             .scale(yScale)
@@ -110,15 +107,15 @@ function drawHistograms(){
 
         // Specify the chart area and dimensions
         var chart = d3.select("#usernameHistogram")
-            .attr("width", width - margin.right)
-            .attr("height", usernameData.length * (barHeight + gapBetween) + margin.top + margin.bottom);
+            .attr("width", width)
+            .attr("height", usernameData.length * (barHeight + gapBetween));
 
         // Create bars
         var bar = chart.selectAll("g")
             .data(zippedData)
             .enter().append("g")
             .attr("transform", function(d, i) {
-              return "translate(" + labelSpaces + "," + (i * (barHeight + gapBetween) + margin.top) + ")";
+              return "translate(" + labelSpaces + "," + (i * (barHeight + gapBetween)) + ")";
             });
 
         // Create rectangles of the correct width
@@ -149,7 +146,7 @@ function drawHistograms(){
 
         chart.append("g")
               .attr("class", "y axis")
-              .attr("transform", "translate(" + labelSpaces + ", " + -gapBetween/2 + ")")
+              .attr("transform", "translate(" + (labelSpaces) + ", " + -gapBetween/2 + ")")
               .call(yAxis);
     }
     
@@ -163,10 +160,10 @@ function drawHistograms(){
         
         var xScale = d3.scale.linear()
             .domain([0, d3.max(zippedData)])
-            .range([0, width - labelSpaces - margin.left]);
+            .range([0, width - labelSpaces]);
 
         var yScale = d3.scale.linear()
-            .range([hashtagData.length * (barHeight + gapBetween) + margin.top + margin.bottom, 0]);
+            .range([hashtagData.length * (barHeight + gapBetween), 0]);
 
         var yAxis = d3.svg.axis()
             .scale(yScale)
@@ -176,15 +173,15 @@ function drawHistograms(){
 
         // Specify the chart area and dimensions
         var chart = d3.select("#hashtagHistogram")
-            .attr("width", width - margin.left)
-            .attr("height", hashtagData.length * (barHeight + gapBetween) + margin.top + margin.bottom);
+            .attr("width", width)
+            .attr("height", hashtagData.length * (barHeight + gapBetween));
 
         // Create bars
         var bar = chart.selectAll("g")
             .data(zippedData)
             .enter().append("g")
             .attr("transform", function(d, i) {
-              return "translate(" + (labelSpaces + margin.left) + "," + (i * (barHeight + gapBetween) + margin.top) + ")";
+              return "translate(" + (labelSpaces) + "," + (i * (barHeight + gapBetween)) + ")";
             });
 
         // Create rectangles of the correct width
@@ -208,14 +205,14 @@ function drawHistograms(){
         // Draw labels
         bar.append("text")
             .attr("class", "label")
-            .attr("x", function(d) { return -labelSpaces + margin.left; })
+            .attr("x", function(d) { return -labelSpaces; })
             .attr("y", barHeight / 2)
             .attr("dy", ".35em")
             .text(function(d,i) {return labels[i];});
 
         chart.append("g")
               .attr("class", "y axis")
-              .attr("transform", "translate(" + (labelSpaces + margin.left) + ", " + -gapBetween/2 + ")")
+              .attr("transform", "translate(" + (labelSpaces) + ", " + -gapBetween/2 + ")")
               .call(yAxis);
     }
     load();

@@ -1,6 +1,6 @@
 function drawMap(){
     var width = document.getElementById('middlePanel').offsetWidth - 2, 
-        height = document.getElementById('middlePanel').offsetHeight - document.getElementById('tweetDistLabel').offsetHeight - 2;
+        height = (document.getElementById('middlePanel').offsetHeight - document.getElementById('tweetDistLabel').offsetHeight) * 0.9;
 
     //console.log(width + " " + height);
 
