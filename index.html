@@ -80,16 +80,24 @@
         
     }
     
-    #hashtagHistogram{
+    #hashtagHistDiv{ 
         overflow:auto;
         overflow-y:scroll;
         overflow-x: hidden;
+        height: 250px;
+        margin: 0px;
+        padding: 0px;
+        display: inline-block;
     }
     
-    #usernameHistogram{
+    #usernameHistDiv{
         overflow:auto;
         overflow-y:scroll;
         overflow-x: hidden;
+        height: 250px;
+        margin: 0px;
+        padding: 0px;
+        display: inline-block;
     }
     
     #tooltip{
@@ -132,8 +140,12 @@
             </div>
             <div>
                 <h2 id="hashUserLabel">Hashtags and Users</h2>
-                <svg id="hashtagHistogram"></svg>
-                <svg id="usernameHistogram"></svg>
+                <div id="hashtagHistDiv">
+                    <svg id="hashtagHistogram"></svg>
+                </div>
+                <div id="usernameHistDiv">
+                    <svg id="usernameHistogram"></svg>
+                </div>
             </div>
         </div>
         
