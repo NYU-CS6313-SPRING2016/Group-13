@@ -35,11 +35,9 @@
     
     #leftPanel {
         display: inline-block;
-        position: relative;
-        width: 200px;
-        height: 500px;
-        overflow:hidden;
-        overflow-y:scroll;
+        float: left;
+        width: 20%;
+        height: 580px;
         stroke: #000;
         border:solid 1px black;
         padding: 0px;
@@ -48,38 +46,57 @@
     
     #listtweets { 
         padding:0px;
+        margin: 0px;
+        width: 100%;
+        height: 540px;
+        overflow:auto;
+        overflow-y:scroll;
+        overflow-x: hidden;
     }
     
     li {    
         list-style: none;
         padding:8px;
-        border:solid 1px black;
+        border-bottom:solid 1px black;
     }
     
     #middlePanel{
         display: inline-block;
-        position: relative;
-        float: top;
-        width: 500px;
-        height: 400px;
+        float:none;
+        width: 45%;
+        height: 580px;
         border: solid 1px black;
         padding: 0px;
-        margin: 0px;
+        margin-left: -1px;
     }
     
     #rightPanel{
-        position: relative;
+        display: inline-block;
         float:right;
         border: solid 1px black;
-        padding: 0px;
-        margin: 0px;
+        margin-left: -10px;
+        width: 35%;
+        height: 580px;
         
+    }
+    
+    #hashtagHistogram{
+        overflow:auto;
+        overflow-y:scroll;
+        overflow-x: hidden;
+    }
+    
+    #usernameHistogram{
+        overflow:auto;
+        overflow-y:scroll;
+        overflow-x: hidden;
     }
     
     #tooltip{
         position:absolute;
         background-color:rgba(255,255,255,0.8);
         padding:5px;
+        margin: -100px;
         border:solid 1px black;
         visibility:hidden;
         transition: all 0.5s;
@@ -104,13 +121,20 @@
         </div>
         
         <div id="middlePanel">
-            <h2>Tweet Distribution</h2>
+            <h2 id="tweetDistLabel">Tweets Distribution</h2>
             <svg id="chartmap"></svg>
         </div>
         
         <div id="rightPanel">
-            <h2>Amount of tweets</h2>
-            <svg id="chartotaltweets"></svg>
+            <div>
+                <h2 id="tweetTimeLabel">Tweets over Time</h2>
+                <svg id="chartotaltweets"></svg>
+            </div>
+            <div>
+                <h2 id="hashUserLabel">Hashtags and Users</h2>
+                <svg id="hashtagHistogram"></svg>
+                <svg id="usernameHistogram"></svg>
+            </div>
         </div>
         
         <div id="tooltip">Tooltip</div>

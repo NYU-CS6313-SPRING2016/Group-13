@@ -34,3 +34,7 @@
     stroke: steelblue;
     stroke-width: 1.5px;
 }
+
+.bar:hover {
+  fill: brown;
+}

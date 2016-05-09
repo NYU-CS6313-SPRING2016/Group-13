@@ -2,8 +2,10 @@ var gdata = [], nestedData;
 var printableData = [];
 
 var gmargin = {top: 20, right: 20, bottom: 30, left: 90},
-    gwidth = 400 - gmargin.left - gmargin.right,
-    gheight = 570 - gmargin.top - gmargin.bottom;
+    gwidth = document.getElementById('rightPanel').offsetWidth - gmargin.left - gmargin.right,
+    gheight = document.getElementById('rightPanel').offsetHeight / 2 - 
+        document.getElementById('tweetTimeLabel').offsetHeight - 
+        gmargin.top - gmargin.bottom;
 
 var formatDec = d3.format(".2f");
 var formatDate = d3.time.format("%m/%d/%Y");
