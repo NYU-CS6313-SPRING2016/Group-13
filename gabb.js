@@ -34,12 +34,8 @@ function changeNeg() {
     
 }
 
-//select
-d3.select("#typeofdata").on("change",changeSelectOption);
-
-function changeSelectOption() {
-    console.log(this.value);
-    if(this.value == "numTweets") {
+function changeSelectOption(value) {
+    if(value == "numTweets") {
         d3.select("#chartotaltweets > *").remove();
         printTotalGraph(printableData);
     } else {
