@@ -1,5 +1,5 @@
 var TiagoScript = function drawMap(){
-    var width = document.getElementById('middlePanel').offsetWidth - 2, 
+    var width = document.getElementById('middlePanel').offsetWidth - 2,
         height = (document.getElementById('middlePanel').offsetHeight - document.getElementById('tweetDistLabel').offsetHeight) * 0.9;
 
     //console.log(width + " " + height);
@@ -11,47 +11,50 @@ var TiagoScript = function drawMap(){
     {
         if (error) throw error;
         tweets = result;
+        loadCountryList();
     });
 
     var color = d3.scale.linear()
-       .domain([-2, -1, 0])
-       .range(["red", "lightblue", "blue"]);
+        .domain([-2, -1, 0])
+        .range(["red", "lightblue", "blue"]);
 
     var projection = d3.geo.mercator()
-            .scale(100)
-            .translate([width / 2, height / 2])
-            .precision(.1);
+        .scale(100)
+        .translate([width / 2, height / 2])
+        .precision(.1);
 
     var path = d3.geo.path()
-            .projection(projection);
+        .projection(projection);
 
     var graticule = d3.geo.graticule();
 
-    var svg = d3.select("#chartmap")//select("body").append("svg")
-            .attr("width", width)
-            .attr("height", height);
+    var svg = d3.select("#chartmap")//("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    let nameTag = svg.append('text')
+        .attr('font-family', 'Verdana')
+        .attr('font-size', '15px')
 
     svg.append("defs").append("path")
-            .datum({type: "Sphere"})
-            .attr("id", "sphere")
-            .attr("d", path);
+        .datum({type: "Sphere"})
+        .attr("id", "sphere")
+        .attr("d", path);
 
     svg.append("use")
-            .attr("class", "stroke")
-            .attr("xlink:href", "#sphere");
+        .attr("class", "stroke")
+        .attr("xlink:href", "#sphere");
 
     svg.append("use")
-            .attr("class", "fill")
-            .attr("xlink:href", "#sphere");
+        .attr("class", "fill")
+        .attr("xlink:href", "#sphere");
 
     svg.append("path")
-            .datum(graticule)
-            .attr("class", "graticule")
-            .attr("d", path);
+        .datum(graticule)
+        .attr("class", "graticule")
+        .attr("d", path);
 
-    loadCountryList();
-    //console.log(showList());
-    draw();
+    console.log(showList());
 
     /*FUNCTIONS*/
     function loadCountryList()
@@ -63,13 +66,18 @@ var TiagoScript = function drawMap(){
                 var c = new Country(d.id, d.name.toLowerCase(), sentiment);
                 country_list.push(c);
             });
+            //draw();
+            queue()
+                .defer(d3.json, "world-110m2.json")
+                .defer(d3.tsv, "world-country-names.tsv")
+                .await(ready)
         });
+
     }
 
     function showList()
     {
         country_list.forEach(function(d) {
-
         });
         return country_list;
     }
@@ -100,7 +108,7 @@ var TiagoScript = function drawMap(){
             sentimentAvg = 10;
         }
         sentiment = Idistance(sentimentAvg);
-        //console.log(sentiment);
+        console.log(sentiment);
         return sentiment;
     }
 
@@ -115,7 +123,7 @@ var TiagoScript = function drawMap(){
         for(var i = 0; i < locations.length; i++)
         {
             var string = locations[i].location;
-            substring = "france";
+            substring = "usa";
             if(string.indexOf(substring) > -1)
             {
                 count++;
@@ -135,10 +143,10 @@ var TiagoScript = function drawMap(){
     {
         var sentiment = 0.0;
         country_list.forEach(function(d) {
-           if (d.id == countryId)
-           {
-               sentiment = d.sentiment;
-           }
+            if (d.id == countryId)
+            {
+                sentiment = d.sentiment;
+            }
         });
         return sentiment;
     }
@@ -157,26 +165,104 @@ var TiagoScript = function drawMap(){
 
     function draw()
     {
+        var err_;
+        var world_;
         d3.json("world-110m2.json", function(error, world) {
+            err_ = error;
+            world_ = world;
             if (error) throw error;
 
             var countries = topojson.feature(world, world.objects.countries).features,
-                    neighbors = topojson.neighbors(world.objects.countries.geometries);
+                neighbors = topojson.neighbors(world.objects.countries.geometries);
 
             svg.selectAll(".country")
-                    .data(countries)
-                    .enter().insert("path", ".graticule")
-                    .attr("class", "country")
-                    .attr("d", path)
-                    .style("fill", newColorCountry);
+                .data(countries)
+                .enter()
+                .insert("path", ".graticule")
+                .attr("class", "country")
+                .attr("d", path)
+                .attr('title', 'Blah')
+                .style('opacity', 0.7)
+                .style("fill", newColorCountry)
+                .attr("cx", function (d) {
+                    return projection([d.lon, d.lat])[0];
+                })
+                .attr("cy", function (d) {
+                    return projection([d.lon, d.lat])[1];
+                });
 
             svg.insert("path", ".graticule")
-                    .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
-                    .attr("class", "boundary")
-                    .attr("d", path);
+                .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+                .attr("class", "boundary")
+                .attr("d", path);
 
         });
+    }
 
+    function ready(err, world, names) {
+
+        if (err) throw err
+        let countries = topojson.feature(world, world.objects.countries).features
+        countries = countries.filter(function(d) {
+            return names.some(function(n) {
+                if (d.id == n.id) return d.name = n.name
+            })
+        })
+        svg.selectAll('.country')
+            .data(countries)
+            .enter()
+            .insert('path', '.graticule')
+            .attr('class', 'country')
+            .attr({
+                'data-name': function(d) {
+                    return d.name
+                },
+                'data-x-centroid': function(d) {
+                    return path.centroid(d)[0]
+                },
+                'data-y-bottom': function(d) {
+                    return path.bounds(d)[1][1]
+                }
+            })
+            .attr('d', path)
+            .attr('title', 'Blah')
+            .style("fill", newColorCountry)
+            .style("opacity", 0.7)
+            .attr("cx", function (d) {
+                return projection([d.lon, d.lat])[0];
+            })
+            .attr("cy", function (d) {
+                return projection([d.lon, d.lat])[1];
+            })
+            .on('mouseover', function() {
+                d3.select(this).style('opacity', 1)
+                let countryName = d3.select(this).attr('data-name')
+                let xCentroid = d3.select(this).attr('data-x-centroid')
+                let yBottom = d3.select(this).attr('data-y-bottom')
+                nameTag.style('visibility', 'hidden')
+                nameTag.text(countryName)
+                let textWidth = nameTag.node().getComputedTextLength()
+                nameTag.attr({
+                    x: xCentroid - (textWidth / 2),
+                    y: Number(yBottom) + (countryName === 'Antarctica' ? -70 : 15),
+                })
+                nameTag.style('visibility', 'visible')
+                console.log('in')
+            })
+            .on('mouseout', function() {
+                console.log('out')
+                d3.select(this).style('opacity', 0.7)
+                nameTag.style('visibility', 'hidden')
+            })
+            .attr('title', 'Blah')
+        let nameTag = svg.append('text')
+            .attr('font-family', 'Verdana')
+            .attr('font-size', '15px')
+
+        svg.insert("path", ".graticule")
+            .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+            .attr("class", "boundary")
+            .attr("d", path);
     }
 
     /*CLASS FUNCTIONS*/
@@ -186,7 +272,7 @@ var TiagoScript = function drawMap(){
         this.sentiment = sentiment;
         this.getCountryInfo = function() {
             return this.id + ' ' + this.name;
-    };
+        };
     }
 
     d3.select(self.frameElement).style("height", height + "px");
