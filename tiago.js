@@ -2,17 +2,25 @@ var TiagoScript = function drawMap(){
     var width = document.getElementById('middlePanel').offsetWidth - 2,
         height = (document.getElementById('middlePanel').offsetHeight - document.getElementById('tweetDistLabel').offsetHeight) * 0.9;
 
-    //console.log(width + " " + height);
-
     var country_list = [];
 
     var tweets = [];
+
+    var myCountries = [];
+
     d3.json("gamergate.json", function(error, result)
     {
         if (error) throw error;
         tweets = result;
         loadCountryList();
     });
+
+    d3.select("#timeSlider").on("input", function()
+    {
+        loadCountryListBasedOnDay(this.value);
+    });
+
+    var check = false;
 
     var color = d3.scale.linear()
         .domain([-2, -1, 0])
@@ -71,8 +79,107 @@ var TiagoScript = function drawMap(){
                 .defer(d3.json, "world-110m2.json")
                 .defer(d3.tsv, "world-country-names.tsv")
                 .await(ready)
+
         });
 
+    }
+
+    function loadCountryListBasedOnDay(day) 
+    { 
+
+            d3.tsv("world-country-names.tsv", function (error, data) {
+                if (error) throw error;
+                if (country_list.length == 0) {
+                    data.forEach(function (d) {
+                        var sentiment = countCountrySentimentInASpecificDay(tweets, d.name, day);
+                        var c = new Country(d.id, d.name.toLowerCase(), sentiment);
+                        country_list.push(c);
+                    });
+                } else {
+                    data.forEach(function (d) {
+                        var sentiment = countCountrySentimentInASpecificDay(tweets, d.name, day);
+                        var c = new Country(d.id, d.name.toLowerCase(), sentiment);
+                        updateCountry(c);
+                    });
+                }
+            });
+                svg.selectAll(".country")
+                    .data(myCountries)
+                    .style('opacity', 0.7)
+                    .style("fill", newColorCountry);
+
+
+    }
+
+    d3.select("#checkMonth").on("change", function() {
+        d3.tsv("world-country-names.tsv", function(error, data) {
+            if (error) throw error;
+            if(country_list.length == 0) {
+                data.forEach(function (d) {
+                    var sentiment = countCountrySentiment(tweets, d.name);
+                    var c = new Country(d.id, d.name.toLowerCase(), sentiment);
+                    country_list.push(c);
+                });
+            }else{
+                data.forEach(function (d) {
+                    var sentiment = countCountrySentiment(tweets, d.name);
+                    var c = new Country(d.id, d.name.toLowerCase(), sentiment);
+                    updateCountry(c);
+                });
+            }
+        });
+        svg.selectAll(".country")
+            .data(myCountries)
+            .style('opacity', 0.7)
+            .style("fill", newColorCountry);
+        check = !check;
+    });
+
+    function dateFormatter(date, day)     {
+                     var day_ = ""; 
+        if(date.includes("/" + day + "/"))         { 
+            day_ = "/" + day + "/"; 
+            while(str.includes("/"))             { 
+                day_ = day_.replace("/", ""); 
+            }         } 
+        return day_; 
+    }
+
+    function retrieveTweetsForThisDay(tweets, day) { 
+        var tweets_of_the_day = []; 
+        for (var i = 0; i < tweets.length; i++)         { 
+            if(tweets[i].time.includes("/" + day + "/"))             { 
+                tweets_of_the_day.push(tweets[i]); 
+            } 
+        } 
+        return tweets_of_the_day; 
+    }
+
+    function countCountrySentimentInASpecificDay(tweets, countryName, day)     { 
+        var sentiment = 0.0; 
+        var sentimentAccumulator = 0.0; 
+        var sentimentCount = 0.0; 
+        var sentimentAvg = 0.0;  
+        var tweets_of_the_day = retrieveTweetsForThisDay(tweets, day);  
+        for(var i = 0; i < tweets_of_the_day.length; i++)         { 
+            if(tweets_of_the_day[i].location.length > 0) { 
+                var c1 = tweets_of_the_day[i].location.toLowerCase(); 
+                var c2 = countryName.toLowerCase(); 
+                if (c1.localeCompare(c2) == 0) 
+                { 
+                    sentimentAccumulator = sentimentAccumulator + parseFloat(tweets_of_the_day[i].sentiment); 
+                    sentimentCount = sentimentCount + 1.0; 
+                } 
+            } 
+        }  
+        if(sentimentCount > 0.0) { 
+            sentimentAvg = sentimentAccumulator / sentimentCount; 
+        }else{ 
+            sentimentAvg = 10; 
+        } 
+        sentiment = Idistance(sentimentAvg); 
+        //console.log(sentiment); 
+        return sentiment; 
     }
 
     function showList()
@@ -108,7 +215,7 @@ var TiagoScript = function drawMap(){
             sentimentAvg = 10;
         }
         sentiment = Idistance(sentimentAvg);
-        console.log(sentiment);
+        //console.log(sentiment);
         return sentiment;
     }
 
@@ -163,6 +270,27 @@ var TiagoScript = function drawMap(){
         return newcolor;
     }
 
+    function updateCountry(country)
+    {
+        for(var i = 0; i < country_list.length; i++)
+        {
+            if(country_list[i].id == country.id)
+            {
+                console.log("++++++++++");
+                country_list[i].sentiment = country.sentiment
+            }
+        }
+    }
+
+    function updateAllCountries(day)
+    {
+
+        var sentiment = countCountrySentimentInASpecificDay(tweets, d.name, day);
+        var c = new Country(d.id, d.name.toLowerCase(), sentiment);
+        updateCountry(c);
+
+    }
+
     function draw()
     {
         var err_;
@@ -205,9 +333,14 @@ var TiagoScript = function drawMap(){
         let countries = topojson.feature(world, world.objects.countries).features
         countries = countries.filter(function(d) {
             return names.some(function(n) {
-                if (d.id == n.id) return d.name = n.name
+                if (d.id == n.id) {
+                    myCountries.push(d);
+                    return d.name = n.name;
+                }
             })
         })
+        myCountries = countries;
+        console.log(myCountries);
         svg.selectAll('.country')
             .data(countries)
             .enter()
@@ -247,10 +380,10 @@ var TiagoScript = function drawMap(){
                     y: Number(yBottom) + (countryName === 'Antarctica' ? -70 : 15),
                 })
                 nameTag.style('visibility', 'visible')
-                console.log('in')
+               // console.log('in')
             })
             .on('mouseout', function() {
-                console.log('out')
+                //console.log('out')
                 d3.select(this).style('opacity', 0.7)
                 nameTag.style('visibility', 'hidden')
             })
@@ -273,6 +406,15 @@ var TiagoScript = function drawMap(){
         this.getCountryInfo = function() {
             return this.id + ' ' + this.name;
         };
+    }
+
+    function checked()
+    {
+        if(check)
+        {
+            loudCountryListBasedOnMonth();
+            console.log("OOOOOO");
+        }
     }
 
     d3.select(self.frameElement).style("height", height + "px");
