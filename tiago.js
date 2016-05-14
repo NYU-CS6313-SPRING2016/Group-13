@@ -40,10 +40,6 @@ var TiagoScript = function drawMap(){
         .attr("width", width)
         .attr("height", height);
 
-    let nameTag = svg.append('text')
-        .attr('font-family', 'Verdana')
-        .attr('font-size', '15px')
-
     svg.append("defs").append("path")
         .datum({type: "Sphere"})
         .attr("id", "sphere")
@@ -61,6 +57,59 @@ var TiagoScript = function drawMap(){
         .datum(graticule)
         .attr("class", "graticule")
         .attr("d", path);
+
+
+    svg.append("rect")       // attach a rectangle
+    .attr("x", 10)         // position the left of the rectangle
+        .attr("y", 430)          // position the top of the rectangle
+        .attr("height", 10)    // set the height
+        .attr("width", 20)     // set the width
+        .style("fill", "blue");
+
+    svg.append("rect")       // attach a rectangle
+        .attr("x", 10)         // position the left of the rectangle
+        .attr("y", 445)          // position the top of the rectangle
+        .attr("height", 10)    // set the height
+        .attr("width", 20)     // set the width
+        .style("fill", "lightblue");
+
+    svg.append("rect")       // attach a rectangle
+        .attr("x", 10)         // position the left of the rectangle
+        .attr("y", 460)          // position the top of the rectangle
+        .attr("height", 10)    // set the height
+        .attr("width", 20)     // set the width
+        .style("fill", "red");
+
+    svg.append("rect")       // attach a rectangle
+        .attr("x", 10)         // position the left of the rectangle
+        .attr("y", 475)          // position the top of the rectangle
+        .attr("height", 10)    // set the height
+        .attr("width", 20)     // set the width
+        .style("fill", "lightgrey");
+
+    svg.append("text")         // append text
+        .style("fill", "black")   // fill the text with the colour black
+        .attr("x", 35)           // set x position of left side of text
+        .attr("y", 437)           // set y position of bottom of text
+        .text("Support Women");     // define the text to display
+
+    svg.append("text")         // append text
+        .style("fill", "black")   // fill the text with the colour black
+        .attr("x", 35)           // set x position of left side of text
+        .attr("y", 452)           // set y position of bottom of text
+        .text("Neutral");     // define the text to display
+
+    svg.append("text")         // append text
+        .style("fill", "black")   // fill the text with the colour black
+        .attr("x", 35)           // set x position of left side of text
+        .attr("y", 467)           // set y position of bottom of text
+        .text("Against Women");     // define the text to display
+
+    svg.append("text")         // append text
+        .style("fill", "black")   // fill the text with the colour black
+        .attr("x", 35)           // set x position of left side of text
+        .attr("y", 482)           // set y position of bottom of text
+        .text("No data");     // define the text to display
 
     console.log(showList());
 
@@ -136,7 +185,7 @@ var TiagoScript = function drawMap(){
     });
 
     function dateFormatter(date, day)     {
-                     var day_ = ""; 
+         var day_ = ""; 
         if(date.includes("/" + day + "/"))         { 
             day_ = "/" + day + "/"; 
             while(str.includes("/"))             { 
