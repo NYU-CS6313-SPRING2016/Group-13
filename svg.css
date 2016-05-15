@@ -35,11 +35,9 @@
     stroke-width: 1.5px;
 }
 
-/*
 .bar:hover {
   fill: brown;
 }
-*/
 
 .svg-container {
     display: inline-block;
