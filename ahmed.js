@@ -47,35 +47,13 @@ function AhmedScript(){
             if(country != "" && tweet.location != country){
                 continue;
             }
-            if(!(tweet.keywords.word instanceof Array)){
-                var tag = tweet.keywords.word.toLowerCase();
-                if(tag.trim().length <= 1){
-                    continue;
-                }
-                if(hashtag != "" && tag.trim().toLowerCase() == hashtag){
-                    continue;
-                }
-                if(!tempHashDic.hasOwnProperty(tag)){
-                    tempHashDic[tag] = {total:0, pos:0, neg:0, totSent:0, posSent:0, negSent:0};
-                }
-                tempHashDic[tag].total += 1;
-                tempHashDic[tag].totSent += parseFloat(tweet.sentiment);
-                if(parseFloat(tweet.sentiment) > 0){
-                    tempHashDic[tag].pos += 1;
-                    tempHashDic[tag].posSent += parseFloat(tweet.sentiment);
-                }
-                else if(parseFloat(tweet.sentiment) < 0){
-                    tempHashDic[tag].neg += 1;
-                    tempHashDic[tag].negSent += parseFloat(tweet.sentiment);
-                }
-            }
-            else{
-                for (var j=0; j<tweet.keywords.word.length; j++){
-                    var tag = tweet.keywords.word[j].toLowerCase();
+            if(tweet.keywords != null){
+                if(!(tweet.keywords.word instanceof Array)){
+                    var tag = tweet.keywords.word.toLowerCase();
                     if(tag.trim().length <= 1){
                         continue;
                     }
-                    if(hashtag != "" && tag.trim().toLowerCase() != hashtag){
+                    if(hashtag != "" && tag.trim().toLowerCase() == hashtag){
                         continue;
                     }
                     if(!tempHashDic.hasOwnProperty(tag)){
@@ -90,6 +68,30 @@ function AhmedScript(){
                     else if(parseFloat(tweet.sentiment) < 0){
                         tempHashDic[tag].neg += 1;
                         tempHashDic[tag].negSent += parseFloat(tweet.sentiment);
+                    }
+                }
+                else{
+                    for (var j=0; j<tweet.keywords.word.length; j++){
+                        var tag = tweet.keywords.word[j].toLowerCase();
+                        if(tag.trim().length <= 1){
+                            continue;
+                        }
+                        if(hashtag != "" && tag.trim().toLowerCase() != hashtag){
+                            continue;
+                        }
+                        if(!tempHashDic.hasOwnProperty(tag)){
+                            tempHashDic[tag] = {total:0, pos:0, neg:0, totSent:0, posSent:0, negSent:0};
+                        }
+                        tempHashDic[tag].total += 1;
+                        tempHashDic[tag].totSent += parseFloat(tweet.sentiment);
+                        if(parseFloat(tweet.sentiment) > 0){
+                            tempHashDic[tag].pos += 1;
+                            tempHashDic[tag].posSent += parseFloat(tweet.sentiment);
+                        }
+                        else if(parseFloat(tweet.sentiment) < 0){
+                            tempHashDic[tag].neg += 1;
+                            tempHashDic[tag].negSent += parseFloat(tweet.sentiment);
+                        }
                     }
                 }
             }
