@@ -9,6 +9,7 @@ function AhmedScript(){
     
     AhmedScript.hashtagData = [];
     AhmedScript.usernameData = [];
+    AhmedScript.hintArray = [];
     
     AhmedScript.load = function load(){
         d3.json("newData.json", 
@@ -176,6 +177,7 @@ function AhmedScript(){
     
     AhmedScript.changeHistogram = function (choice){
         if(choice == "numTweets"){
+            AhmedScript.hintArray = ["Total Number of Tweets", "Number of Positive Tweets", "Number of Negative Tweets"];
             AhmedScript.hashtagData.sort(function(x, y){
                     return d3.descending(x.total, y.total);
                 });
@@ -184,6 +186,7 @@ function AhmedScript(){
                 });
         }
         else{
+            AhmedScript.hintArray = ["Total Average Sentiment", "Average Positive Sentiment", "Average Negative Sentiment"];
             AhmedScript.hashtagData.sort(function(x, y){
                     return d3.descending(x.totSent, y.totSent);
                 });
@@ -286,16 +289,16 @@ function AhmedScript(){
             .attr("text-anchor", "end")
             .text(function(d,i) { return zippedData[i].value; });
         
-//        d3.selectAll(".bar")
-//            .on("mouseenter", function(d, i){
-//                d3.select("#tooltip").style({ 
-//                    visibility: "visible", 
-//                    top: (d3.event.clientY) + "px", 
-//                    left: d3.event.clientX + "px",
-//                    opacity: 1}).text("Total: " + d);
-//            }).on("mouseleave", function(d, i){
-//                d3.select("#tooltip").style({ visibility: "hidden", opacity: 0 });
-//            });
+        d3.selectAll(".bar")
+            .on("mouseenter", function(d, i){
+                d3.select("#tooltip").style({ 
+                    visibility: "visible", 
+                    top: (d3.event.clientY) + "px", 
+                    left: d3.event.clientX + "px",
+                    opacity: 1}).text(AhmedScript.hintArray[i % 3]);
+            }).on("mouseleave", function(d, i){
+                d3.select("#tooltip").style({ visibility: "hidden", opacity: 0 });
+            });
 
         // Draw labels
         chart.selectAll(".histLabel")
