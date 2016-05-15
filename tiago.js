@@ -60,7 +60,7 @@ var TiagoScript = function drawMap(){
 
 
     svg.append("rect")       // attach a rectangle
-    .attr("x", 10)         // position the left of the rectangle
+        .attr("x", 10)         // position the left of the rectangle
         .attr("y", 430)          // position the top of the rectangle
         .attr("height", 10)    // set the height
         .attr("width", 20)     // set the width
@@ -110,6 +110,18 @@ var TiagoScript = function drawMap(){
         .attr("x", 35)           // set x position of left side of text
         .attr("y", 482)           // set y position of bottom of text
         .text("No data");     // define the text to display
+
+    d3.select("#leftPanel").on('click', function()
+    {
+        d3.select("#filterBox").attr("value", "");
+        //console.log(d3.select(this).attr('data-name'));
+    });
+
+    d3.select("#rightPanel").on('click', function()
+    {
+        d3.select("#filterBox").attr("value", "");
+        //console.log(d3.select(this).attr('data-name'));
+    });
 
     console.log(showList());
 
@@ -430,6 +442,11 @@ var TiagoScript = function drawMap(){
                 })
                 nameTag.style('visibility', 'visible')
                // console.log('in')
+            })
+            .on('click', function()
+            {
+                d3.select("#filterBox").attr("value", d3.select(this).attr('data-name'));
+                console.log(d3.select(this).attr('data-name'));
             })
             .on('mouseout', function() {
                 //console.log('out')
