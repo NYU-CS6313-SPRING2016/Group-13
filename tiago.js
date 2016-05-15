@@ -118,17 +118,17 @@ var TiagoScript = function drawMap(){
         .attr("y", 482)           // set y position of bottom of text
         .text("No data");     // define the text to display
 
-    d3.select("#leftPanel").on('click', function()
-    {
-        d3.select("#filterBox").attr("value", "");
-        //console.log(d3.select(this).attr('data-name'));
-    });
+//    d3.select("#leftPanel").on('click', function()
+//    {
+//        d3.select("#filterBox").attr("value", "");
+//        //console.log(d3.select(this).attr('data-name'));
+//    });
 
-    d3.select("#rightPanel").on('click', function()
-    {
-        d3.select("#filterBox").attr("value", "");
-        //console.log(d3.select(this).attr('data-name'));
-    });
+//    d3.select("#rightPanel").on('click', function()
+//    {
+//        d3.select("#filterBox").attr("value", "");
+//        //console.log(d3.select(this).attr('data-name'));
+//    });
 
     function againstCountries()
     {
@@ -539,7 +539,7 @@ var TiagoScript = function drawMap(){
             })
             .on('click', function()
             {
-                d3.select("#filterBox").attr("value", d3.select(this).attr('data-name'));
+                d3.select("#filterBox")[0][0].value = d3.select(this).attr('data-name');
                 textOnChange();
             })
             .on('mouseout', function() {
