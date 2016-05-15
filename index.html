@@ -122,7 +122,11 @@
     }
 
     #filterBox{
-        width:80%;
+        width:60%;
+    }
+    
+    #clearButton{
+        width:20%;
     }
 
     #rightAdjustPanel{
@@ -239,6 +243,7 @@
                 <div id="leftAdjustPanel">
                     <label>Filter:</label>
                     <input id="filterBox" type="text" onchange="textOnChange()"/>
+                    <input id="clearButton" type="button" onclick="clearTextBox()" value="clear"/>
                 </div>
                 <div id="rightAdjustPanel">
                     <label>Output Type:</label>
@@ -288,6 +293,10 @@
     function textOnChange(){
         AhmedScript.prepareData(textBox.value);
         AhmedScript.changeHistogram(comboBox.value);
+    }
+    function clearTextBox(){
+        textBox.value = "";
+        textOnChange();
     }
 </script>
 <script src="gabb.js"></script>

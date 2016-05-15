@@ -28,13 +28,25 @@ function AhmedScript(){
         var country = "";
         var hashtag = "";
         var username = "";
+        var hsentiment = "t";
+        var usentiment = "t";
         for (var i=0; i<filters.length; i++){
             var f = filters[i];
             if(f.trim().charAt(0) == "#"){
-                hashtag = f.trim().substring(1, f.trim().length).toLowerCase();
+                var subIndex = 0;
+                if(f.indexOf(":") >= 0){
+                    subIndex = 2;
+                    hsentiment = f.trim().substr(f.trim().length - 1, f.trim().length).toLowerCase();
+                }
+                hashtag = f.trim().substring(1, f.trim().length - subIndex).toLowerCase();
             }
             else if(f.trim().charAt(0) == "@"){
-                username = f.trim().substring(1, f.trim().length).toLowerCase();
+                var subIndex = 0;
+                if(f.indexOf(":") >= 0){
+                    subIndex = 2;
+                    usentiment = f.trim().substr(f.trim().length - 1, f.trim().length).toLowerCase();
+                }
+                username = f.trim().substring(1, f.trim().length - subIndex).toLowerCase();
             }
             else{
                 country = f.trim().toLowerCase();
@@ -45,7 +57,53 @@ function AhmedScript(){
         var tempUserDic = {};
         for (var i=0; i< tweets.data.row.length; i++){
             var tweet = tweets.data.row[i];
+            var skipCountryTweet = false;
             if(country != "" && tweet.location != country){
+                skipCountryTweet = true;
+            }
+            var skipHashTweet = true;
+            if(hashtag == ""){
+                skipHashTweet = false;
+            }
+            if(skipHashTweet){
+                if(tweet.keywords != null){
+                    if(!(tweet.keywords.word instanceof Array)){
+                        var tag = tweet.keywords.word.toLowerCase();
+                        if(tag.trim().toLowerCase() == hashtag){
+                            skipHashTweet = false;
+                        }
+                    }
+                    else{
+                        for (var j=0; j<tweet.keywords.word.length; j++){
+                            var tag = tweet.keywords.word[j].toLowerCase();
+                            if(tag.trim().toLowerCase() == hashtag){
+                                skipHashTweet = false;
+                            }
+                        }
+                    }
+                }
+            }
+            var skipUserTweet = true;
+            if(username == ""){
+                skipUserTweet = false;
+            }
+            if(skipUserTweet){
+                if(!(tweet.usernames.user instanceof Array)){
+                    var user = tweet.usernames.user.toLowerCase();
+                    if(user.trim().toLowerCase() == username){
+                        skipUserTweet = false;
+                    }
+                }
+                else{
+                    for (var j=0; j<tweet.usernames.user.length; j++){
+                        var user = tweet.usernames.user[j].toLowerCase();
+                        if(user.trim().toLowerCase() == username){
+                            skipUserTweet = false;
+                        }
+                    }
+                }
+            }
+            if(skipCountryTweet || skipHashTweet || skipUserTweet){
                 continue;
             }
             if(tweet.keywords != null){
@@ -54,19 +112,16 @@ function AhmedScript(){
                     if(tag.trim().length <= 1){
                         continue;
                     }
-                    if(hashtag != "" && tag.trim().toLowerCase() == hashtag){
-                        continue;
-                    }
                     if(!tempHashDic.hasOwnProperty(tag)){
                         tempHashDic[tag] = {total:0, pos:0, neg:0, totSent:0, posSent:0, negSent:0};
                     }
                     tempHashDic[tag].total += 1;
                     tempHashDic[tag].totSent += parseFloat(tweet.sentiment);
-                    if(parseFloat(tweet.sentiment) > 0){
+                    if(parseFloat(tweet.sentiment) > 0 && hsentiment != "n"){
                         tempHashDic[tag].pos += 1;
                         tempHashDic[tag].posSent += parseFloat(tweet.sentiment);
                     }
-                    else if(parseFloat(tweet.sentiment) < 0){
+                    else if(parseFloat(tweet.sentiment) < 0 && hsentiment != "p"){
                         tempHashDic[tag].neg += 1;
                         tempHashDic[tag].negSent += parseFloat(tweet.sentiment);
                     }
@@ -77,19 +132,16 @@ function AhmedScript(){
                         if(tag.trim().length <= 1){
                             continue;
                         }
-                        if(hashtag != "" && tag.trim().toLowerCase() != hashtag){
-                            continue;
-                        }
                         if(!tempHashDic.hasOwnProperty(tag)){
                             tempHashDic[tag] = {total:0, pos:0, neg:0, totSent:0, posSent:0, negSent:0};
                         }
                         tempHashDic[tag].total += 1;
                         tempHashDic[tag].totSent += parseFloat(tweet.sentiment);
-                        if(parseFloat(tweet.sentiment) > 0){
+                        if(parseFloat(tweet.sentiment) > 0 && hsentiment != "n"){
                             tempHashDic[tag].pos += 1;
                             tempHashDic[tag].posSent += parseFloat(tweet.sentiment);
                         }
-                        else if(parseFloat(tweet.sentiment) < 0){
+                        else if(parseFloat(tweet.sentiment) < 0 && hsentiment != "p"){
                             tempHashDic[tag].neg += 1;
                             tempHashDic[tag].negSent += parseFloat(tweet.sentiment);
                         }
@@ -97,30 +149,18 @@ function AhmedScript(){
                 }
             }
 
-
             if(!(tweet.usernames.user instanceof Array)){
                 var user = tweet.usernames.user.toLowerCase();
-                var length = user.length;
-                if(user[user.length - 1] == ":"){
-                    length = user.length - 1;
-                }
-                user = user.substring(0, length);
-                if(user.trim().length <= 1){
-                    continue;
-                }
-                if(username != "" && tag.trim().toLowerCase() != username){
-                    continue;
-                }
                 if(!tempUserDic.hasOwnProperty(user)){
                     tempUserDic[user] = {total:0, pos:0, neg:0, totSent:0, posSent:0, negSent:0};
                 }
                 tempUserDic[user].total += 1;
                 tempUserDic[user].totSent += parseFloat(tweet.sentiment);
-                if(parseFloat(tweet.sentiment) > 0){
+                if(parseFloat(tweet.sentiment) > 0 && usentiment != "n"){
                     tempUserDic[user].pos += 1;
                     tempUserDic[user].posSent += parseFloat(tweet.sentiment);
                 }
-                else if(parseFloat(tweet.sentiment) < 0){
+                else if(parseFloat(tweet.sentiment) < 0 && usentiment != "p"){
                     tempUserDic[user].neg += 1;
                     tempUserDic[user].negSent += parseFloat(tweet.sentiment);
                 }
@@ -128,27 +168,16 @@ function AhmedScript(){
             else{
                 for (var j=0; j<tweet.usernames.user.length; j++){
                     var user = tweet.usernames.user[j].toLowerCase();
-                    var length = user.length;
-                    if(user[user.length - 1] == ":"){
-                        length = user.length - 1;
-                    }
-                    user = user.substring(0, length);
-                    if(user.trim().length <= 1){
-                        continue;
-                    }
-                    if(username != "" && tag.trim().toLowerCase() != username){
-                        continue;
-                    }
                     if(!tempUserDic.hasOwnProperty(user)){
                         tempUserDic[user] = {total:0, pos:0, neg:0, totSent:0, posSent:0, negSent:0};
                     }
                     tempUserDic[user].total += 1;
                     tempUserDic[user].totSent += parseFloat(tweet.sentiment);
-                    if(parseFloat(tweet.sentiment) > 0){
+                    if(parseFloat(tweet.sentiment) > 0 && usentiment != "n"){
                         tempUserDic[user].pos += 1;
                         tempUserDic[user].posSent += parseFloat(tweet.sentiment);
                     }
-                    else if(parseFloat(tweet.sentiment) < 0){
+                    else if(parseFloat(tweet.sentiment) < 0 && usentiment != "p"){
                         tempUserDic[user].neg += 1;
                         tempUserDic[user].negSent += parseFloat(tweet.sentiment);
                     }
@@ -298,6 +327,61 @@ function AhmedScript(){
                     opacity: 1}).text(AhmedScript.hintArray[i % 3]);
             }).on("mouseleave", function(d, i){
                 d3.select("#tooltip").style({ visibility: "hidden", opacity: 0 });
+            }).on("click", function(d, i){
+                var sent = ["t", "p", "n"];
+                var textBoxString = d3.select("#filterBox")[0][0].value;
+                if(textBoxString == null){
+                    textBoxString = "";
+                }
+                var smallText = textBoxString.split(",");
+                var country = "";
+                var user = "";
+                var hash = "";
+                if(smallText instanceof Array){
+                    for(var j=0; j<smallText.length; j++){
+                        if(smallText[j].trim().indexOf("#") >= 0){
+                            hash = smallText[j].trim();
+                        }
+                        else if(smallText[j].trim().indexOf("@") >= 0){
+                            user = smallText[j].trim();
+                        }
+                        else{
+                            country = smallText[j].trim();
+                        }
+                    }
+                }
+                else{
+                    if(smallText.trim().indexOf("#") >= 0){
+                        hash = smallText.trim();
+                    }
+                    else if(smallText.trim().indexOf("@") > 0){
+                        user = smallText.trim();
+                    }
+                    else{
+                        country = smallText.trim();
+                    }
+                }   
+            
+                var newText = country;
+                if(country.length > 0){
+                    newText += ", ";
+                }
+                if(d3.select(this.parentNode.parentNode.parentNode).attr("id").indexOf("Hash") >= 0){
+                    newText += d3.select(this.parentNode).select(".histLabel")[0][0].innerHTML;
+                    if(user.length > 0){
+                        newText += ", " + user;
+                    }
+                }
+                else{
+                    newText += hash;
+                    if(hash.length > 0){
+                        newText += ", ";
+                    }
+                    newText += d3.select(this.parentNode).select(".histLabel")[0][0].innerHTML;
+                }
+                
+                d3.select("#filterBox")[0][0].value = newText;
+                textOnChange();
             });
 
         // Draw labels
