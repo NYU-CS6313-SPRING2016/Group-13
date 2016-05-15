@@ -540,7 +540,7 @@ var TiagoScript = function drawMap(){
             .on('click', function()
             {
                 d3.select("#filterBox").attr("value", d3.select(this).attr('data-name'));
-                console.log(d3.select(this).attr('data-name'));
+                textOnChange();
             })
             .on('mouseout', function() {
                 //console.log('out')
