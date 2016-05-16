@@ -293,6 +293,8 @@
     function textOnChange(){
         AhmedScript.prepareData(textBox.value);
         AhmedScript.changeHistogram(comboBox.value);
+        
+        selectData(textBox.value, comboBox.value);
     }
     function clearTextBox(){
         textBox.value = "";
