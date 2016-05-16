@@ -327,62 +327,63 @@ function AhmedScript(){
                     opacity: 1}).text(AhmedScript.hintArray[i % 3]);
             }).on("mouseleave", function(d, i){
                 d3.select("#tooltip").style({ visibility: "hidden", opacity: 0 });
-            }).on("click", function(d, i){
-                var sent = ["t", "p", "n"];
-                var textBoxString = d3.select("#filterBox")[0][0].value;
-                if(textBoxString == null){
-                    textBoxString = "";
-                }
-                var smallText = textBoxString.split(",");
-                var country = "";
-                var user = "";
-                var hash = "";
-                if(smallText instanceof Array){
-                    for(var j=0; j<smallText.length; j++){
-                        if(smallText[j].trim().indexOf("#") >= 0){
-                            hash = smallText[j].trim();
-                        }
-                        else if(smallText[j].trim().indexOf("@") >= 0){
-                            user = smallText[j].trim();
-                        }
-                        else{
-                            country = smallText[j].trim();
-                        }
-                    }
-                }
-                else{
-                    if(smallText.trim().indexOf("#") >= 0){
-                        hash = smallText.trim();
-                    }
-                    else if(smallText.trim().indexOf("@") > 0){
-                        user = smallText.trim();
-                    }
-                    else{
-                        country = smallText.trim();
-                    }
-                }   
-            
-                var newText = country;
-                if(country.length > 0){
-                    newText += ", ";
-                }
-                if(d3.select(this.parentNode.parentNode.parentNode).attr("id").indexOf("Hash") >= 0){
-                    newText += d3.select(this.parentNode).select(".histLabel")[0][0].innerHTML;
-                    if(user.length > 0){
-                        newText += ", " + user;
-                    }
-                }
-                else{
-                    newText += hash;
-                    if(hash.length > 0){
-                        newText += ", ";
-                    }
-                    newText += d3.select(this.parentNode).select(".histLabel")[0][0].innerHTML;
-                }
-                
-                d3.select("#filterBox")[0][0].value = newText;
-                textOnChange();
             });
+//            .on("click", function(d, i){
+//                var sent = ["t", "p", "n"];
+//                var textBoxString = d3.select("#filterBox")[0][0].value;
+//                if(textBoxString == null){
+//                    textBoxString = "";
+//                }
+//                var smallText = textBoxString.split(",");
+//                var country = "";
+//                var user = "";
+//                var hash = "";
+//                if(smallText instanceof Array){
+//                    for(var j=0; j<smallText.length; j++){
+//                        if(smallText[j].trim().indexOf("#") >= 0){
+//                            hash = smallText[j].trim();
+//                        }
+//                        else if(smallText[j].trim().indexOf("@") >= 0){
+//                            user = smallText[j].trim();
+//                        }
+//                        else{
+//                            country = smallText[j].trim();
+//                        }
+//                    }
+//                }
+//                else{
+//                    if(smallText.trim().indexOf("#") >= 0){
+//                        hash = smallText.trim();
+//                    }
+//                    else if(smallText.trim().indexOf("@") > 0){
+//                        user = smallText.trim();
+//                    }
+//                    else{
+//                        country = smallText.trim();
+//                    }
+//                }   
+//            
+//                var newText = country;
+//                if(country.length > 0){
+//                    newText += ", ";
+//                }
+//                if(d3.select(this.parentNode.parentNode.parentNode).attr("id").indexOf("Hash") >= 0){
+//                    newText += d3.select(this.parentNode).select(".histLabel")[0][0].innerHTML;
+//                    if(user.length > 0){
+//                        newText += ", " + user;
+//                    }
+//                }
+//                else{
+//                    newText += hash;
+//                    if(hash.length > 0){
+//                        newText += ", ";
+//                    }
+//                    newText += d3.select(this.parentNode).select(".histLabel")[0][0].innerHTML;
+//                }
+//                
+//                d3.select("#filterBox")[0][0].value = newText;
+//                textOnChange();
+//            });
 
         // Draw labels
         chart.selectAll(".histLabel")
