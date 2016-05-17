@@ -10,7 +10,7 @@ var TiagoScript = function drawMap(){
 
     var currentDay = "11";
 
-    var stringDate = "Date: 04/12";
+    var stringDate = "Date: 04/11";
     var dateParam = stringDate.substring(6) + "/2016";
 
     d3.json("gamergate.json", function(error, result)
