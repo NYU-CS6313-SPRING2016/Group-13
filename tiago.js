@@ -88,7 +88,7 @@ var TiagoScript = function drawMap(){
         .attr("class", "graticule")
         .attr("d", path);
 
-    var textTooltip = d3.select("#tooltip").append('text');
+    var textTooltip = d3.select("#tooltipaux").append('text');
 
     var textSlider =  svg.append("text")         // append text
         .style("fill", "red")   // fill the text with the colour black
@@ -210,15 +210,14 @@ var TiagoScript = function drawMap(){
         d3.tsv("world-country-names.tsv", function(error, data) {
             if (error) throw error;
             data.forEach(function(d) {
-                var sentiment = countCountrySentiment(tweets, d.name);
+                var sentiment = countCountrySentimentInASpecificDate(tweets, d.name, dateParam);
                 var c = new Country(d.id, d.name.toLowerCase(), sentiment);
                 country_list.push(c);
             });
-
             queue()
                 .defer(d3.json, "world-110m2.json")
                 .defer(d3.tsv, "world-country-names.tsv")
-                .await(ready)
+                .await(ready);
 
             var listSupport = supportiveCountries(country_list);
             var listAgainst = againstCountries(country_list);
@@ -231,9 +230,7 @@ var TiagoScript = function drawMap(){
             non_supp1.text("1. " + listAgainst[0].name);
             non_supp2.text("2. " + listAgainst[1].name);
             non_supp3.text("3. " + listAgainst[2].name);
-
-            loadCountryListBasedOnDay(12);
-
+            loadCountryListBasedOnDate(dateParam);
         });
 
     }
@@ -820,26 +817,12 @@ var TiagoScript = function drawMap(){
                 d3.select("#filterBox")[0][0].value = d3.select(this).attr('data-name');
                 textOnChange();
                 if (selection.localeCompare("numTweets".toLowerCase()) == 0) {
-                    textTooltip.style({
-                        position: "absolute",
-                        visibility: "visible",
-                        opacity: 1,
-                        fill: "blue",
-                        top: d3.event.clientY + "px",
-                        left: d3.event.clientX + "px"
-                    }).text(d3.select(this).attr('data-name') + "\t\n" + "Total Tweets: " +
-                        totalTweetsOfThisCountryOnThisDate(d3.select(this).attr('data-name'), dateParam).toString())
+                    textTooltip.text("\t\n" + "Total Tweets: " + "\n" +
+                        totalTweetsOfThisCountryOnThisDate(d3.select(this).attr('data-name'), dateParam)).fontcolor("red")
                 } else if (selection.localeCompare("avgSentiment".toLowerCase()) == 0) {
-                    textTooltip.style({
-                        position: "absolute",
-                        visibility: "visible",
-                        opacity: 1,
-                        fill: "blue",
-                        top: d3.event.clientY + "px",
-                        left: d3.event.clientX + "px"
-                    }).text(d3.select(this).attr('data-name') + "\t\n" + "Pos: " +
-                        t_pos(d3.select(this).attr('data-name'), dateParam) + " " +
-                        "Neg: " + t_neg(d3.select(this).attr('data-name'), dateParam))
+                    textTooltip.text("Pos: " + t_pos(d3.select(this).attr('data-name'), dateParam) + "\n" +
+                        "Neg: -" + t_neg(d3.select(this).attr('data-name'), dateParam))
+
                 }
             })
             .on('mouseout', function() {
