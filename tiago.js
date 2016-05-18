@@ -1,5 +1,5 @@
 var TiagoScript = function drawMap(){
-    var width = document.getElementById('middlePanel').offsetWidth - 2,
+    var width = document.getElementById('middlePanel').offsetWidth - 14,
         height = document.getElementById('middlePanel').offsetHeight;
 
     var country_list = [];
