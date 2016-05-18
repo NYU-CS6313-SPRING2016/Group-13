@@ -382,6 +382,7 @@ function AhmedScript(){
                 if(country.length > 0){
                     newText += ", ";
                 }
+                var subLength = 0;
                 if(d3.select(this.parentNode.parentNode.parentNode).attr("id").indexOf("Hash") >= 0){
                     newText += d3.select(this.parentNode).select(".histLabel")[0][0].innerHTML;
                     if(user.length > 0){
@@ -389,6 +390,7 @@ function AhmedScript(){
                     }
                 }
                 else{
+                    subLength = d3.select("#scrollableHashDiv").selectAll(".histLabel")[0].length;
                     newText += hash;
                     if(hash.length > 0){
                         newText += ", ";
@@ -396,7 +398,8 @@ function AhmedScript(){
                     newText += d3.select(this.parentNode).select(".histLabel")[0][0].innerHTML;
                 }
                 
-                d3.select("#filterBox")[0][0].value = newText;
+                d3.select("#filterBox")[0][0].value = d3.select(this.parentNode.parentNode)
+                    .selectAll(".histLabel")[0][div * Math.floor((i - subLength) / div)].innerHTML;
                 textOnChange();
             });
 
