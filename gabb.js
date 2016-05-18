@@ -16,6 +16,7 @@ var formatDate = d3.time.format("%m/%d/%Y");
 
 var isPosChecked = true;
 var isNegChecked = true;
+var cradius = 2;
 
 d3.select("#posCheckbox").on("change", changePos);
 d3.select("#posCheckbox").property('checked', true);
@@ -25,9 +26,11 @@ d3.select("#negCheckbox").property('checked', true);
 
 function changePos() {
    isPosChecked = this.checked;
+   console.log(this.value+" test "+this.checked);
 }
 function changeNeg() {
    isNegChecked = this.checked;
+   console.log(this.value+" test "+this.checked);
     
 }
 
@@ -38,6 +41,7 @@ function changeSelectOption(value) {
         d3.select("#chartotaltweets > *").remove();
         printTotalGraph(printableData);
     } else {
+        console.log("other");
         d3.select("#chartotaltweets > *").remove();
         printAverageGraph(printableData);
     }
@@ -65,6 +69,18 @@ var line = d3.svg.line()
     .x(function(d) { return x(d.time); })
     .y(function(d) { return y(d.size); });
 
+var lineTotPos = d3.svg.line()
+    .x(function(d) { return x(d.time); })
+    .y(function(d) { return y(d.posnum); });
+
+var lineTotNeg = d3.svg.line()
+    .x(function(d) { return x(d.time); })
+    .y(function(d) { return y(d.negnum); });
+
+var lineTotNeu = d3.svg.line()
+    .x(function(d) { return x(d.time); })
+    .y(function(d) { return y(d.neunum); });
+
 
 var linePos = d3.svg.line()
     .x(function(d) { return x(d.time); })
@@ -74,6 +90,23 @@ var lineNeg = d3.svg.line()
     .x(function(d) { return x(d.time); })
     .y(function(d) { return y(d.neg); });
 
+function hasTextHash(data,hash) {
+    for(var i = 0; i < data.word.length; i++) {
+        if(data.word[i] == hash) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function hasTextUser(data,hash) {
+    for(var i = 0; i < data.user.length; i++) {
+        if(data.user[i] == hash) {
+            return true;
+        }
+    }
+    return false;
+}
 
 function sortByDateAscending(a, b) {
     // Dates will be cast to numbers automagically:
@@ -85,6 +118,8 @@ d3.json("data.json", function(error,result) {
     
     result = result.sort(sortByDateAscending);
     gdata = result;
+    //console.log("here");
+    //console.log(gdata);
     
     nestedData = d3.nest()
         .key(function(d) { return d.time; })
@@ -101,8 +136,18 @@ d3.json("data.json", function(error,result) {
 }); 
 
 
-function selectData(country,type) {
-
+function selectData(filterChoice,type) {
+    var country="", username="",hashtag="";
+    var aux = filterChoice.toLowerCase().split(",");
+    for(var i = 0; i < aux.length; i++) {
+        if(aux[i].length > 1 && aux[i].charAt(0) == '#') {
+            hashtag = aux[i].split("#")[1];
+        } else if(aux[i].length > 1 && aux[i].charAt(0) == '@') {
+            username = aux[i].split("@")[1];
+        } else {
+            country = aux[i];
+        }
+    }
     /*var nestedCountry = d3.nest()
         .key(function(d) { return d.location; })
         .sortKeys(d3.ascending)
@@ -115,7 +160,7 @@ function selectData(country,type) {
         }
     }*/
     
-    printTweets(gdata,country);
+    printTweets(gdata,country,username,hashtag);
 
    
     //printableData = new Array(nestedData.length);
@@ -123,20 +168,22 @@ function selectData(country,type) {
     var dates = new Array(gdata.length);
     for(var i =0; i < gdata.length; i++) {
         dates[i] = gdata[i].time;
+        //console.log(gdata[i]);
     }
     printableData = [];
-    
-    if(country != null)
-        country = country.toLowerCase();
 
     for(var i =0; i < nestedData.length; i++) {
-        var p = 0, n = 0,size = 0;
+        var p = 0, n = 0,size = 0, neu = 0;
         for(var j = 0; j < nestedData[i].values.length; j++) {
-            if(country ==  "" || country == null || (nestedData[i].values[j].location != null && nestedData[i].values[j].location == country)) {
+            if((country ==  "" || country == null || (nestedData[i].values[j].location != null && nestedData[i].values[j].location == country)) &&
+               (hashtag == null || hashtag == "" || (nestedData[i].values[j].keywords != null && hasTextHash(nestedData[i].values[j].keywords,hashtag)))&&
+                (username == null || username == "" || (nestedData[i].values[j].usernames != null && hasTextUser(nestedData[i].values[j].usernames,username)))) {
                 if(nestedData[i].values[j].sentiment > 0) {
                     p++;
                 } else if(nestedData[i].values[j].sentiment < 0.0) {
                     n++;
+                } else {
+                    neu++;
                 }
                 size++;
            }
@@ -146,15 +193,22 @@ function selectData(country,type) {
                 size:size,
                 time:nestedData[i].key,
                 pos:p / size,
-                neg: -1 *n / size,
+                neg: n / size,
                 posnum:p,
-                negnum:n
+                negnum:n,
+                neunum:neu
             });
         }
     }
 
+//    console.log("result "+ gdata.length);
+//    console.log(nestedData);
+    //console.log(printableData);
+
     minDate = d3.min(dates);
     maxDate = d3.max(dates);
+//    console.log(minDate);
+//    console.log(maxDate);
 
     //printableData =  printableData.sort(sortByDateAscending);
 
@@ -167,9 +221,10 @@ function selectData(country,type) {
 
 
 /*function highlight(gdata) {
+console.log(viz.selectAll("circle"));
 viz.selectAll("circle").style("stroke", function(d,i) { return d.name==name ? "black" : undefined});
 list.selectAll("li")
-    .style("background-color", function(d,i) { return d.name == name ? "black" : undefined})
+    .style("background-color", function(d,i) {console.log(d.name); return d.name == name ? "black" : undefined})
     .style("color",function(d,i){return d.name == name ? "white" : undefined});
 }
 
@@ -185,7 +240,7 @@ function printTotalGraph(printableData) {
     x.domain(d3.extent(printableData, function(d) { return d.time; }))
     ;
     
-    y.domain([0,d3.max(printableData,function(d) { return d.size; })]);//d3.extent(printableData, function(d) { return d.size; }));
+    y.domain([0,d3.max(printableData,function(d) { return Math.max(d.posnum,Math.max(d.negnum,d.neunum)); })]);//d3.extent(printableData, function(d) { return d.size; }));
 
     var svg = d3.select("#chartotaltweets")//("body").append("svg")
         .attr("width", gwidth + gmargin.left + gmargin.right)
@@ -218,21 +273,33 @@ function printTotalGraph(printableData) {
 
     svg.append("path")
       .attr("class", "line")
-      .attr("d", line(printableData));
+      .attr("d", lineTotPos(printableData))
+            .style("stroke",'blue');;
+    
+     svg.append("path")
+      .attr("class", "line")
+      .attr("d", lineTotNeg(printableData))
+            .style("stroke",'red');
+    
+    svg.append("path")
+      .attr("class", "line")
+      .attr("d", lineTotNeu(printableData))
+            .style("stroke",'dimgray');
 
     svg.selectAll(".dot")
       .data(printableData)
       .enter().append("circle")
       .attr('class', 'datapoint')
       .attr('cx', function(d) { return x(d.time); })
-      .attr('cy', function(d) { return y(d.size); })
-      .attr('r', 6)
-      .attr('fill', 'white')
-      .attr('stroke', 'steelblue')
+      .attr('cy', function(d) { return y(d.posnum); })
+      .attr('r', cradius)
+      .attr('fill', 'blue')
+      .attr('stroke', 'blue')
       .attr('stroke-width', '3')
       .on('mouseenter',function(d,i){ 
         //tip.show
             //highlight(d);
+    //    console.log(d3.event.clientX+","+d3.event.clientY);
             d3.select("#tooltip").style({
                                         position:"absolute",
                                         visibility: "visible",
@@ -240,8 +307,42 @@ function printTotalGraph(printableData) {
                                         top:d3.event.clientY + "px",
                                         left:d3.event.clientX + "px"    
                                         }).html(
-                                            "Pos: "+formatDec(d.pos)+"<br>"+
-                                            "Neg: "+formatDec(d.neg)+"<br>" +
+                                            "Pos: "+formatDec(d.posnum)+"<br>"+
+                                            "Neg: "+formatDec(d.negnum)+"<br>" +
+                                            "Neu: "+formatDec(d.neunum)+"<br>" +
+                                            "Total: "+d.size);
+        })
+        .on('mouseleave',function(d,i){
+            //tip.hide
+           // hide();
+            d3.select("#tooltip").style({visibility: "hidden",
+                                        opacity:0});
+        })
+    
+    svg.selectAll(".dot")
+      .data(printableData)
+      .enter().append("circle")
+      .attr('class', 'datapoint')
+      .attr('cx', function(d) { return x(d.time); })
+      .attr('cy', function(d) { return y(d.negnum); })
+      .attr('r', cradius)
+      .attr('fill', 'red')
+      .attr('stroke', 'red')
+      .attr('stroke-width', '3')
+      .on('mouseenter',function(d,i){ 
+        //tip.show
+            //highlight(d);
+    //    console.log(d3.event.clientX+","+d3.event.clientY);
+            d3.select("#tooltip").style({
+                                        position:"absolute",
+                                        visibility: "visible",
+                                         opacity:1,
+                                        top:d3.event.clientY + "px",
+                                        left:d3.event.clientX + "px"    
+                                        }).html(
+                                            "Pos: "+formatDec(d.posnum)+"<br>"+
+                                            "Neg: "+formatDec(d.negnum)+"<br>" +
+                                            "Neu: "+formatDec(d.neunum)+"<br>" +
                                             "Total: "+d.size);
         })
         .on('mouseleave',function(d,i){
@@ -251,12 +352,44 @@ function printTotalGraph(printableData) {
                                         opacity:0});
         })
 
+    svg.selectAll(".dot")
+      .data(printableData)
+      .enter().append("circle")
+      .attr('class', 'datapoint')
+      .attr('cx', function(d) { return x(d.time); })
+      .attr('cy', function(d) { return y(d.neunum); })
+      .attr('r', cradius)
+      .attr('fill', 'dimgrey')
+      .attr('stroke', 'dimgrey')
+      .attr('stroke-width', '3')
+      .on('mouseenter',function(d,i){ 
+        //tip.show
+            //highlight(d);
+    //    console.log(d3.event.clientX+","+d3.event.clientY);
+            d3.select("#tooltip").style({
+                                        position:"absolute",
+                                        visibility: "visible",
+                                         opacity:1,
+                                        top:d3.event.clientY + "px",
+                                        left:d3.event.clientX + "px"    
+                                        }).html(
+                                            "Pos: "+formatDec(d.posnum)+"<br>"+
+                                            "Neg: "+formatDec(d.negnum)+"<br>" +
+                                            "Neu: "+formatDec(d.neunum)+"<br>" +
+                                            "Total: "+d.size);
+        })
+        .on('mouseleave',function(d,i){
+            //tip.hide
+           // hide();
+            d3.select("#tooltip").style({visibility: "hidden",
+                                        opacity:0});
+        })
 }
 
 function printAverageGraph(printableData) {
         d3.select("#chartotaltweets > *").remove();
     x.domain(d3.extent(printableData, function(d) { return d.time; }));
-    y.domain([-1,1]);//d3.extent(printableData, -1,function(d) { return Math.max(d.pos,d.neg) * 2; }));
+    y.domain([0,1]);//d3.extent(printableData, -1,function(d) { return Math.max(d.pos,d.neg) * 2; }));
 
     var svg = d3.select("#chartotaltweets")//("body").append("svg")
         .attr("width", gwidth + gmargin.left + gmargin.right)
@@ -304,13 +437,14 @@ function printAverageGraph(printableData) {
       .attr('class', 'datapoint')
       .attr('cx', function(d) { return x(d.time); })
       .attr('cy', function(d) { return y(d.pos); })
-      .attr('r', 6)
+      .attr('r', cradius)
       .attr('fill', 'white')
       .attr('stroke', 'blue')
       .attr('stroke-width', '3')
       .on('mouseenter',function(d,i){ 
         //tip.show
             //highlight(d);
+    //    console.log(d3.event.clientX+","+d3.event.clientY);
             d3.select("#tooltip").style({
                                         position:"absolute",
                                         visibility: "visible",
@@ -335,13 +469,14 @@ function printAverageGraph(printableData) {
       .attr('class', 'datapoint')
       .attr('cx', function(d) { return x(d.time); })
       .attr('cy', function(d) { return y(d.neg); })
-      .attr('r', 6)
+      .attr('r', cradius)
       .attr('fill', 'white')
       .attr('stroke', 'red')
       .attr('stroke-width', '3')
       .on('mouseenter',function(d,i){ 
         //tip.show
             //highlight(d);
+    //    console.log(d3.event.clientX+","+d3.event.clientY);
             d3.select("#tooltip").style({
                                         position:"absolute",
                                         visibility: "visible",
@@ -369,7 +504,9 @@ function printAverageGraph(printableData) {
       .attr("d", lineNeg(printableData));*/
 }
 
-function printTweets(gData,country) {
+
+
+function printTweets(gData,country,username,hashtag) {
 //list of tweets
     if(country != null)
         country = country.toLowerCase();
@@ -378,30 +515,60 @@ function printTweets(gData,country) {
     
     var tweD = [];
     for(var i = 0; i < gData.length; i++) {
-        if(country == null || country == "" || (gData[i].location != null && gData[i].location == country)) {
+        if((country == null || country == "" || (gData[i].location != null && gData[i].location == country)) &&
+            (hashtag == null || hashtag == "" || (gData[i].keywords != null && hasTextHash(gData[i].keywords,hashtag)))&&
+            (username == null || username == "" || (gData[i].usernames != null && hasTextUser(gData[i].usernames,username)))) {
             tweD.push({
                 username:gData[i].username,
                 tweet:gData[i].tweet,
-                time:gData[i].time
+                time:gData[i].time,
+                sentiment:gData[i].sentiment,
+                hashtags:gData[i].keywords,
+                usernames:gData[i].usernames
             });
+        //console.log(gData[i].username);
         }   
     }
+    console.log(tweD.length);
     
     list = d3.select("#listtweets").selectAll("li")
         .data(tweD, function(d) {return d.username+": "+d.tweet + " "+d.time;        })
     ;
     list.enter()
         .append("li")
-        .html(function(d) {return "<b>"+d.username+":</b><br> "+d.tweet + " <br>"}).attr("width",50);
+        .html(function(d) {return "<b>"+d.username+":</b><br> "+d.tweet + " <br>"}).attr("width",50)
+    .on('mouseenter',function(d,i){ 
+        //tip.show
+            //highlight(d);
+            d3.select("#tooltip").style({
+                                        position:"absolute",
+                                        visibility: "visible",
+                                         opacity:2,
+                                        top:d3.event.clientY + "px",
+                                        left:d3.event.clientX + "px"    
+                                        }).html(
+                                            "Sentiment: "+d.sentiment+"<br>"
+                                            );
+        })
+        .on('mouseleave',function(d,i){
+            //tip.hide
+           // hide();
+            d3.select("#tooltip").style({visibility: "hidden",
+                                        opacity:0});
+        });
 
     list.exit().remove();
 }
 
 function type(d) {
+//console.log(d);
 for(var i = 0; i < d.length; i++) {
+    //console.log("time"+d[i].time);
     d[i].time = +(formatDate.parse(d[i].time));
     d[i].support = +d[i].support;
     d[i].sentiment = +d[i].sentiment;
+  //  console.log("time2"+d[i].time);
 }
+//console.log("done");
 return d;
 }
