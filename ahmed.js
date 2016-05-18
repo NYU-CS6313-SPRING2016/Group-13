@@ -3,7 +3,7 @@ function AhmedScript(){
     var barHeight = 20;
     var gapBetween = 10;
     var labelSpaces = 130;
-    var color = ["dimgrey", "blue", "red"];
+    var color = ["blue", "red", "dimgrey"];
     
     var tweets = [];
     
@@ -217,14 +217,16 @@ function AhmedScript(){
     }
     
     AhmedScript.changeHistogram = function (choice){
+        var div = 3;
         if(choice == "numTweets"){
-            AhmedScript.hintArray = ["Number of Neutral Tweets", "Number of Positive Tweets", "Number of Negative Tweets"];
+            AhmedScript.hintArray = ["Number of Positive Tweets", "Number of Negative Tweets", "Number of Neutral Tweets"];
             AhmedScript.hashtagData.sort(function(x, y){
                     return d3.descending(x.total, y.total);
                 });
             AhmedScript.usernameData.sort(function(x, y){
                    return d3.descending(x.total, y.total);
                 });
+            div = 3;
         }
         else{
             AhmedScript.hintArray = ["Average Positive Sentiment", "Average Negative Sentiment"];
@@ -234,6 +236,7 @@ function AhmedScript(){
             AhmedScript.usernameData.sort(function(x, y){
                    return d3.descending(x.totSent, y.totSent);
                 });
+            div = 2;
         }
         
         
@@ -242,43 +245,43 @@ function AhmedScript(){
         for (var i=0; i<AhmedScript.usernameData.length; i++) {
             labels.push("@" + AhmedScript.usernameData[i].label);
             if(choice == "numTweets"){
-                zippedData.push({index:3*i, value:AhmedScript.usernameData[i].neutral});
-                zippedData.push({index:3*i + 1, value:AhmedScript.usernameData[i].pos});
-                zippedData.push({index:3*i + 2, value:AhmedScript.usernameData[i].neg});
+                zippedData.push({index:3*i, value:AhmedScript.usernameData[i].pos});
+                zippedData.push({index:3*i + 1, value:AhmedScript.usernameData[i].neg});
+                zippedData.push({index:3*i + 2, value:AhmedScript.usernameData[i].neutral});
             }
             else{
-                var tempValue = Math.floor(1000 * AhmedScript.usernameData[i].totSent)/1000;
-                zippedData.push({index:3*i, value:tempValue});
-                tempValue = Math.floor(1000 * AhmedScript.usernameData[i].posSent)/1000;
-                zippedData.push({index:3*i + 1, value:tempValue});
+//                var tempValue = Math.floor(1000 * AhmedScript.usernameData[i].totSent)/1000;
+//                zippedData.push({index:3*i, value:tempValue});
+                var tempValue = Math.floor(1000 * AhmedScript.usernameData[i].posSent)/1000;
+                zippedData.push({index:2*i, value:tempValue});
                 tempValue = Math.floor(1000 * AhmedScript.usernameData[i].negSent)/1000;
-                zippedData.push({index:3*i + 2, value:tempValue});
+                zippedData.push({index:2*i + 1, value:tempValue});
             }
         }
-        renderHistogram(zippedData, labels, "#usernameHistogram");
+        renderHistogram(zippedData, labels, div, "#usernameHistogram");
 
         var zippedData = [];
         var labels = [];
         for (var i=0; i<AhmedScript.hashtagData.length; i++) {
             labels.push("#" + AhmedScript.hashtagData[i].label);
             if(choice == "numTweets"){
-                zippedData.push({index:3*i, value:AhmedScript.hashtagData[i].neutral});
-                zippedData.push({index:3*i + 1, value:AhmedScript.hashtagData[i].pos});
-                zippedData.push({index:3*i + 2, value:AhmedScript.hashtagData[i].neg});
+                zippedData.push({index:3*i, value:AhmedScript.hashtagData[i].pos});
+                zippedData.push({index:3*i + 1, value:AhmedScript.hashtagData[i].neg});
+                zippedData.push({index:3*i + 2, value:AhmedScript.hashtagData[i].neutral});
             }
             else{
-                var tempValue = Math.floor(1000 * AhmedScript.hashtagData[i].totSent) / 1000;
-                zippedData.push({index:3*i, value:tempValue});
-                tempValue = Math.floor(1000 * AhmedScript.hashtagData[i].posSent) / 1000;
-                zippedData.push({index:3*i + 1, value:tempValue});
+//                var tempValue = Math.floor(1000 * AhmedScript.hashtagData[i].totSent) / 1000;
+//                zippedData.push({index:3*i, value:tempValue});
+                var tempValue = Math.floor(1000 * AhmedScript.hashtagData[i].posSent) / 1000;
+                zippedData.push({index:2*i, value:tempValue});
                 tempValue = Math.floor(1000 * AhmedScript.hashtagData[i].negSent) / 1000;
-                zippedData.push({index:3*i + 2, value:tempValue});
+                zippedData.push({index:2*i + 1, value:tempValue});
             }
         }
-        renderHistogram(zippedData, labels, "#hashtagHistogram");
+        renderHistogram(zippedData, labels, div, "#hashtagHistogram");
     }
     
-    function renderHistogram(zippedData, labels, htmlID){
+    function renderHistogram(zippedData, labels, div, htmlID){
         var xScale = d3.scale.linear()
             .domain([0, d3.max(zippedData, function(d,i){ return d.value; })])
             .range([10, histWidth - labelSpaces]);
@@ -302,7 +305,7 @@ function AhmedScript(){
             .data(zippedData, function(d){ if(d == undefined) {return d;} return d.index; })
             .enter().append("g")
             .attr("transform", function(d, i) {
-                return "translate(" + labelSpaces + "," + (i * barHeight + gapBetween * (0.5 + Math.floor(i/3))) + ")";
+                return "translate(" + labelSpaces + "," + (i * barHeight + gapBetween * (0.5 + Math.floor(i/div))) + ")";
             });
         chart.selectAll("g")
             .data(zippedData, function(d){ if(d == undefined) {return d;} return d.index; })
@@ -315,7 +318,7 @@ function AhmedScript(){
 
         // Create rectangles of the correct width
         chart.selectAll("rect")
-            .attr("fill", function(d,i) { return color[i % 3]; })
+            .attr("fill", function(d,i) { return color[i % div]; })
             .attr("class", "bar")
             .attr("width", function(d,i){ return xScale(zippedData[i].value); })
             .attr("height", barHeight - 1);
@@ -336,7 +339,7 @@ function AhmedScript(){
                     visibility: "visible", 
                     top: (d3.event.clientY) + "px", 
                     left: d3.event.clientX + "px",
-                    opacity: 1}).text(AhmedScript.hintArray[i % 3]);
+                    opacity: 1}).text(AhmedScript.hintArray[i % div]);
             }).on("mouseleave", function(d, i){
                 d3.select("#tooltip").style({ visibility: "hidden", opacity: 0 });
             })
@@ -400,11 +403,11 @@ function AhmedScript(){
         // Draw labels
         chart.selectAll(".histLabel")
             .attr("x", function(d) { return -labelSpaces; })
-            .attr("y", 3 * barHeight / 2)
+            .attr("y", div * barHeight / 2)
             .attr("dy", ".35em")
             .text(function(d,i) {
-                if (i % 3 === 0)
-                    return labels[Math.floor(i/3)];
+                if (i % div === 0)
+                    return labels[Math.floor(i/div)];
                 else
                     return ""});
 

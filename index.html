@@ -300,14 +300,12 @@
     }
     
     function getSliderValue(){
-        var day = (parseInt(timeSlider.value) + 10) % 31;
-        console.log(day);
-        var month = (parseInt(timeSlider.value) + 10) / 31 > 1? 5:4;
+        var day = (parseInt(timeSlider.value) + 9) % 30 + 1;
+        var month = (parseInt(timeSlider.value) + 10) / 30 > 1? 5:4;
         return month + "/" + day;
     }
     
     function sliderChange(value){
-        console.log(getSliderValue());
         AhmedScript.prepareData(textBox.value, getSliderValue());
         AhmedScript.changeHistogram(comboBox.value);
     }

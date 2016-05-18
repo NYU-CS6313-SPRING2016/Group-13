@@ -383,8 +383,6 @@ var TiagoScript = function drawMap(){
     function retrieveTweetsForThisDate(tweets, date) {
 
         var tweets_of_the_day = [];
-        console.log("BBBBBBBBBBBBBB");
-        console.log(tweets);
         for (var i = 0; i < tweets.length; i++) {
             if(tweets[i].time.toString().localeCompare(date.toString()) == 0) {
                 tweets_of_the_day.push(tweets[i]);
@@ -591,8 +589,8 @@ var TiagoScript = function drawMap(){
         var neg = 0.0;
         var total = 0.0;
         var twits_of_the_date = retrieveTweetsForThisDate(tweets, data);
-        console.log("OPOPOPOPOPOP");
-        console.log(twits_of_the_date);
+//        console.log("OPOPOPOPOPOP");
+//        console.log(twits_of_the_date);
         for (var i = 0; i < twits_of_the_date.length; i++) {
             if (twits_of_the_date[i].location.length > 0) {
                 if (twits_of_the_date[i].time.localeCompare(data) == 0) {
