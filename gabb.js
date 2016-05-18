@@ -25,11 +25,9 @@ d3.select("#negCheckbox").property('checked', true);
 
 function changePos() {
    isPosChecked = this.checked;
-   console.log(this.value+" test "+this.checked);
 }
 function changeNeg() {
    isNegChecked = this.checked;
-   console.log(this.value+" test "+this.checked);
     
 }
 
@@ -40,7 +38,6 @@ function changeSelectOption(value) {
         d3.select("#chartotaltweets > *").remove();
         printTotalGraph(printableData);
     } else {
-        console.log("other");
         d3.select("#chartotaltweets > *").remove();
         printAverageGraph(printableData);
     }
@@ -88,8 +85,6 @@ d3.json("data.json", function(error,result) {
     
     result = result.sort(sortByDateAscending);
     gdata = result;
-    //console.log("here");
-    //console.log(gdata);
     
     nestedData = d3.nest()
         .key(function(d) { return d.time; })
@@ -128,11 +123,9 @@ function selectData(country,type) {
     var dates = new Array(gdata.length);
     for(var i =0; i < gdata.length; i++) {
         dates[i] = gdata[i].time;
-        //console.log(gdata[i]);
     }
     printableData = [];
     
-    console.log(country);
     if(country != null)
         country = country.toLowerCase();
 
@@ -160,14 +153,8 @@ function selectData(country,type) {
         }
     }
 
-//    console.log("result "+ gdata.length);
-//    console.log(nestedData);
-    //console.log(printableData);
-
     minDate = d3.min(dates);
     maxDate = d3.max(dates);
-//    console.log(minDate);
-//    console.log(maxDate);
 
     //printableData =  printableData.sort(sortByDateAscending);
 
@@ -180,10 +167,9 @@ function selectData(country,type) {
 
 
 /*function highlight(gdata) {
-console.log(viz.selectAll("circle"));
 viz.selectAll("circle").style("stroke", function(d,i) { return d.name==name ? "black" : undefined});
 list.selectAll("li")
-    .style("background-color", function(d,i) {console.log(d.name); return d.name == name ? "black" : undefined})
+    .style("background-color", function(d,i) { return d.name == name ? "black" : undefined})
     .style("color",function(d,i){return d.name == name ? "white" : undefined});
 }
 
@@ -247,7 +233,6 @@ function printTotalGraph(printableData) {
       .on('mouseenter',function(d,i){ 
         //tip.show
             //highlight(d);
-    //    console.log(d3.event.clientX+","+d3.event.clientY);
             d3.select("#tooltip").style({
                                         position:"absolute",
                                         visibility: "visible",
@@ -326,7 +311,6 @@ function printAverageGraph(printableData) {
       .on('mouseenter',function(d,i){ 
         //tip.show
             //highlight(d);
-    //    console.log(d3.event.clientX+","+d3.event.clientY);
             d3.select("#tooltip").style({
                                         position:"absolute",
                                         visibility: "visible",
@@ -358,7 +342,6 @@ function printAverageGraph(printableData) {
       .on('mouseenter',function(d,i){ 
         //tip.show
             //highlight(d);
-    //    console.log(d3.event.clientX+","+d3.event.clientY);
             d3.select("#tooltip").style({
                                         position:"absolute",
                                         visibility: "visible",
@@ -401,10 +384,8 @@ function printTweets(gData,country) {
                 tweet:gData[i].tweet,
                 time:gData[i].time
             });
-        //console.log(gData[i].username);
         }   
     }
-    console.log(tweD.length);
     
     list = d3.select("#listtweets").selectAll("li")
         .data(tweD, function(d) {return d.username+": "+d.tweet + " "+d.time;        })
@@ -417,14 +398,10 @@ function printTweets(gData,country) {
 }
 
 function type(d) {
-//console.log(d);
 for(var i = 0; i < d.length; i++) {
-    //console.log("time"+d[i].time);
     d[i].time = +(formatDate.parse(d[i].time));
     d[i].support = +d[i].support;
     d[i].sentiment = +d[i].sentiment;
-  //  console.log("time2"+d[i].time);
 }
-//console.log("done");
 return d;
 }

@@ -422,7 +422,6 @@ AhmedScript();
 AhmedScript.load();
 //d3.select("#typeofdata").on("change",histogramComboboxChange);
 //function histogramComboboxChange() {
-//    console.log("enter");
 //    d3.select("#usernameHistogram > *").remove();
 //    d3.select("#hashtagHistogram > *").remove();
 //    AhmedScript.renderCorrectHistogram(this.value);
