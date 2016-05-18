@@ -253,9 +253,9 @@ function AhmedScript(){
 //                var tempValue = Math.floor(1000 * AhmedScript.usernameData[i].totSent)/1000;
 //                zippedData.push({index:3*i, value:tempValue});
                 var tempValue = Math.floor(1000 * AhmedScript.usernameData[i].posSent)/1000;
-                zippedData.push({index:2*i, value:tempValue});
+                zippedData.push({index:-2*i, value:tempValue});
                 tempValue = Math.floor(1000 * AhmedScript.usernameData[i].negSent)/1000;
-                zippedData.push({index:2*i + 1, value:tempValue});
+                zippedData.push({index:-(2*i + 1), value:tempValue});
             }
         }
         renderHistogram(zippedData, labels, div, "#usernameHistogram");
@@ -273,9 +273,9 @@ function AhmedScript(){
 //                var tempValue = Math.floor(1000 * AhmedScript.hashtagData[i].totSent) / 1000;
 //                zippedData.push({index:3*i, value:tempValue});
                 var tempValue = Math.floor(1000 * AhmedScript.hashtagData[i].posSent) / 1000;
-                zippedData.push({index:2*i, value:tempValue});
+                zippedData.push({index:-2*i, value:tempValue});
                 tempValue = Math.floor(1000 * AhmedScript.hashtagData[i].negSent) / 1000;
-                zippedData.push({index:2*i + 1, value:tempValue});
+                zippedData.push({index:-(2*i + 1), value:tempValue});
             }
         }
         renderHistogram(zippedData, labels, div, "#hashtagHistogram");
@@ -305,6 +305,7 @@ function AhmedScript(){
             .data(zippedData, function(d){ if(d == undefined) {return d;} return d.index; })
             .enter().append("g")
             .attr("transform", function(d, i) {
+                console.log(i + ", " + (i * barHeight + gapBetween * (0.5 + Math.floor(i/div))))
                 return "translate(" + labelSpaces + "," + (i * barHeight + gapBetween * (0.5 + Math.floor(i/div))) + ")";
             });
         chart.selectAll("g")
