@@ -305,7 +305,6 @@ function AhmedScript(){
             .data(zippedData, function(d){ if(d == undefined) {return d;} return d.index; })
             .enter().append("g")
             .attr("transform", function(d, i) {
-                console.log(i + ", " + (i * barHeight + gapBetween * (0.5 + Math.floor(i/div))))
                 return "translate(" + labelSpaces + "," + (i * barHeight + gapBetween * (0.5 + Math.floor(i/div))) + ")";
             });
         chart.selectAll("g")
