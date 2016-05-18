@@ -88,7 +88,7 @@ var TiagoScript = function drawMap(){
         .attr("class", "graticule")
         .attr("d", path);
 
-    var textTooltip = d3.select("#tooltipaux").append('text');
+    var textTooltip = d3.select("#tooltip").append('text');
 
     var textSlider =  svg.append("text")         // append text
         .style("fill", "red")   // fill the text with the colour black
