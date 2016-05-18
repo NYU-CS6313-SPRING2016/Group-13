@@ -6,8 +6,7 @@ var printableData = [];
 
 var gmargin = {top: 20, right: 20, bottom: 30, left: 40},
     gwidth = document.getElementById('rightPanel').offsetWidth - gmargin.left - gmargin.right,
-    gheight = document.getElementById('rightPanel').offsetHeight / 2 - 
-        document.getElementById('tweetTimeLabel').offsetHeight - 
+    gheight = document.getElementById('rightPanel').offsetHeight / 2 -  
         gmargin.top - gmargin.bottom;
 
 var formatDec = d3.format(".2f");
