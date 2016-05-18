@@ -15,12 +15,12 @@ function AhmedScript(){
         d3.json("newData.json", 
             function(error, result){
                 tweets = result;
-                AhmedScript.prepareData("");
+                AhmedScript.prepareData("", "04/11");
                 AhmedScript.changeHistogram("numTweets");
             });
     }
     
-    AhmedScript.prepareData = function (filterString){
+    AhmedScript.prepareData = function (filterString, filterDate){
         AhmedScript.hashtagData = [];
         AhmedScript.usernameData = [];
         
@@ -53,6 +53,10 @@ function AhmedScript(){
             }
         }
         
+        filters = filterDate.split("/");
+        var fDay = parseInt(filters[1]);
+        var fMonth = parseInt(filters[0]);
+        
         var tempHashDic = {};
         var tempUserDic = {};
         for (var i=0; i< tweets.data.row.length; i++){
@@ -60,6 +64,12 @@ function AhmedScript(){
             var skipCountryTweet = false;
             if(country != "" && tweet.location != country){
                 skipCountryTweet = true;
+            }
+            var skipDay = true;
+            var tweetDay = parseInt(tweet.time.split("/")[1]);
+            var tweetMonth = parseInt(tweet.time.split("/")[0]);
+            if(fDay == tweetDay && fMonth == tweetMonth){
+                skipDay = false;
             }
             var skipHashTweet = true;
             if(hashtag == ""){
@@ -103,7 +113,7 @@ function AhmedScript(){
                     }
                 }
             }
-            if(skipCountryTweet || skipHashTweet || skipUserTweet){
+            if(skipDay || skipCountryTweet || skipHashTweet || skipUserTweet){
                 continue;
             }
             if(tweet.keywords != null){
@@ -186,8 +196,9 @@ function AhmedScript(){
         }
         var index = 1;
         for(var key in tempHashDic){
-            AhmedScript.hashtagData.push({index:index, label:key, total:tempHashDic[key].total, pos:tempHashDic[key].pos, 
-                              neg:tempHashDic[key].neg, 
+            var neutralNumber = tempHashDic[key].total - tempHashDic[key].pos - tempHashDic[key].neg;
+            AhmedScript.hashtagData.push({index:index, label:key, neutral:neutralNumber, 
+                              total:tempHashDic[key].total, pos:tempHashDic[key].pos, neg:tempHashDic[key].neg, 
                               totSent:Math.abs(tempHashDic[key].totSent) / (1.0 * tempHashDic[key].total), 
                               posSent:Math.abs(tempHashDic[key].posSent) / (1.0 * tempHashDic[key].total), 
                               negSent:Math.abs(tempHashDic[key].negSent) / (1.0 * tempHashDic[key].total)});
@@ -195,8 +206,9 @@ function AhmedScript(){
         }
         index = 1;
         for(var key in tempUserDic){
-            AhmedScript.usernameData.push({index:index, label:key, total:tempUserDic[key].total, 
-               pos:tempUserDic[key].pos, neg:tempUserDic[key].neg, 
+            var neutralNumber = tempUserDic[key].total - tempUserDic[key].pos - tempUserDic[key].neg;
+            AhmedScript.usernameData.push({index:index, label:key, neutral:neutralNumber, 
+               total:tempUserDic[key].total, pos:tempUserDic[key].pos, neg:tempUserDic[key].neg, 
                totSent:Math.abs(tempUserDic[key].totSent) / (1.0 * tempUserDic[key].total),
                posSent:Math.abs(tempUserDic[key].posSent) / (1.0 * tempUserDic[key].total),
                negSent:Math.abs(tempUserDic[key].negSent) / (1.0 * tempUserDic[key].total)});
@@ -206,7 +218,7 @@ function AhmedScript(){
     
     AhmedScript.changeHistogram = function (choice){
         if(choice == "numTweets"){
-            AhmedScript.hintArray = ["Total Number of Tweets", "Number of Positive Tweets", "Number of Negative Tweets"];
+            AhmedScript.hintArray = ["Number of Neutral Tweets", "Number of Positive Tweets", "Number of Negative Tweets"];
             AhmedScript.hashtagData.sort(function(x, y){
                     return d3.descending(x.total, y.total);
                 });
@@ -215,7 +227,7 @@ function AhmedScript(){
                 });
         }
         else{
-            AhmedScript.hintArray = ["Total Average Sentiment", "Average Positive Sentiment", "Average Negative Sentiment"];
+            AhmedScript.hintArray = ["Average Positive Sentiment", "Average Negative Sentiment"];
             AhmedScript.hashtagData.sort(function(x, y){
                     return d3.descending(x.totSent, y.totSent);
                 });
@@ -230,7 +242,7 @@ function AhmedScript(){
         for (var i=0; i<AhmedScript.usernameData.length; i++) {
             labels.push("@" + AhmedScript.usernameData[i].label);
             if(choice == "numTweets"){
-                zippedData.push({index:3*i, value:AhmedScript.usernameData[i].total});
+                zippedData.push({index:3*i, value:AhmedScript.usernameData[i].neutral});
                 zippedData.push({index:3*i + 1, value:AhmedScript.usernameData[i].pos});
                 zippedData.push({index:3*i + 2, value:AhmedScript.usernameData[i].neg});
             }
@@ -250,7 +262,7 @@ function AhmedScript(){
         for (var i=0; i<AhmedScript.hashtagData.length; i++) {
             labels.push("#" + AhmedScript.hashtagData[i].label);
             if(choice == "numTweets"){
-                zippedData.push({index:3*i, value:AhmedScript.hashtagData[i].total});
+                zippedData.push({index:3*i, value:AhmedScript.hashtagData[i].neutral});
                 zippedData.push({index:3*i + 1, value:AhmedScript.hashtagData[i].pos});
                 zippedData.push({index:3*i + 2, value:AhmedScript.hashtagData[i].neg});
             }
@@ -327,63 +339,63 @@ function AhmedScript(){
                     opacity: 1}).text(AhmedScript.hintArray[i % 3]);
             }).on("mouseleave", function(d, i){
                 d3.select("#tooltip").style({ visibility: "hidden", opacity: 0 });
+            })
+            .on("click", function(d, i){
+                var sent = ["t", "p", "n"];
+                var textBoxString = d3.select("#filterBox")[0][0].value;
+                if(textBoxString == null){
+                    textBoxString = "";
+                }
+                var smallText = textBoxString.split(",");
+                var country = "";
+                var user = "";
+                var hash = "";
+                if(smallText instanceof Array){
+                    for(var j=0; j<smallText.length; j++){
+                        if(smallText[j].trim().indexOf("#") >= 0){
+                            hash = smallText[j].trim();
+                        }
+                        else if(smallText[j].trim().indexOf("@") >= 0){
+                            user = smallText[j].trim();
+                        }
+                        else{
+                            country = smallText[j].trim();
+                        }
+                    }
+                }
+                else{
+                    if(smallText.trim().indexOf("#") >= 0){
+                        hash = smallText.trim();
+                    }
+                    else if(smallText.trim().indexOf("@") > 0){
+                        user = smallText.trim();
+                    }
+                    else{
+                        country = smallText.trim();
+                    }
+                }   
+            
+                var newText = country;
+                if(country.length > 0){
+                    newText += ", ";
+                }
+                if(d3.select(this.parentNode.parentNode.parentNode).attr("id").indexOf("Hash") >= 0){
+                    newText += d3.select(this.parentNode).select(".histLabel")[0][0].innerHTML;
+                    if(user.length > 0){
+                        newText += ", " + user;
+                    }
+                }
+                else{
+                    newText += hash;
+                    if(hash.length > 0){
+                        newText += ", ";
+                    }
+                    newText += d3.select(this.parentNode).select(".histLabel")[0][0].innerHTML;
+                }
+                
+                d3.select("#filterBox")[0][0].value = newText;
+                textOnChange();
             });
-//            .on("click", function(d, i){
-//                var sent = ["t", "p", "n"];
-//                var textBoxString = d3.select("#filterBox")[0][0].value;
-//                if(textBoxString == null){
-//                    textBoxString = "";
-//                }
-//                var smallText = textBoxString.split(",");
-//                var country = "";
-//                var user = "";
-//                var hash = "";
-//                if(smallText instanceof Array){
-//                    for(var j=0; j<smallText.length; j++){
-//                        if(smallText[j].trim().indexOf("#") >= 0){
-//                            hash = smallText[j].trim();
-//                        }
-//                        else if(smallText[j].trim().indexOf("@") >= 0){
-//                            user = smallText[j].trim();
-//                        }
-//                        else{
-//                            country = smallText[j].trim();
-//                        }
-//                    }
-//                }
-//                else{
-//                    if(smallText.trim().indexOf("#") >= 0){
-//                        hash = smallText.trim();
-//                    }
-//                    else if(smallText.trim().indexOf("@") > 0){
-//                        user = smallText.trim();
-//                    }
-//                    else{
-//                        country = smallText.trim();
-//                    }
-//                }   
-//            
-//                var newText = country;
-//                if(country.length > 0){
-//                    newText += ", ";
-//                }
-//                if(d3.select(this.parentNode.parentNode.parentNode).attr("id").indexOf("Hash") >= 0){
-//                    newText += d3.select(this.parentNode).select(".histLabel")[0][0].innerHTML;
-//                    if(user.length > 0){
-//                        newText += ", " + user;
-//                    }
-//                }
-//                else{
-//                    newText += hash;
-//                    if(hash.length > 0){
-//                        newText += ", ";
-//                    }
-//                    newText += d3.select(this.parentNode).select(".histLabel")[0][0].innerHTML;
-//                }
-//                
-//                d3.select("#filterBox")[0][0].value = newText;
-//                textOnChange();
-//            });
 
         // Draw labels
         chart.selectAll(".histLabel")

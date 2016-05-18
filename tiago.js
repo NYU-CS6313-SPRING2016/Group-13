@@ -1,6 +1,6 @@
 var TiagoScript = function drawMap(){
     var width = document.getElementById('middlePanel').offsetWidth - 2,
-        height = (document.getElementById('middlePanel').offsetHeight - document.getElementById('tweetDistLabel').offsetHeight) * 0.9;
+        height = document.getElementById('middlePanel').offsetHeight;
 
     var country_list = [];
 
@@ -35,7 +35,7 @@ var TiagoScript = function drawMap(){
     });
 
 
-    console.log("c " + currentDay);
+//    console.log("c " + currentDay);
 
     var check = false;
 
@@ -57,8 +57,7 @@ var TiagoScript = function drawMap(){
     var selection = "numtweets";
 
     type.on('change', function()
-    { selection = (this.value).toLowerCase()
-    console.log(selection)})
+    { selection = (this.value).toLowerCase()})
 
     var svg = d3.select("#chartmap")//("body").append("svg")
         .attr("width", width)
@@ -143,7 +142,7 @@ var TiagoScript = function drawMap(){
 
     function supportiveCountries(countries)
     {
-        console.log(countries.length);
+//        console.log(countries.length);
         var supportiveCountries = countries;
         supportiveCountries.sort(function(a, b) {
             return b.sentiment - a.sentiment;
@@ -155,7 +154,7 @@ var TiagoScript = function drawMap(){
 
     function againstCountries(countries)
     {
-        console.log(countries.length);
+//        console.log(countries.length);
         var against_countries = countries;
         against_countries.sort(function(a, b) {
             return a.sentiment - b.sentiment;
@@ -167,7 +166,7 @@ var TiagoScript = function drawMap(){
 
     function rankPos(countries)
     {
-        console.log(countries.length);
+//        console.log(countries.length);
         var against_countries = countries;
         against_countries.sort(function(a, b) {
             return a.balance - b.balance;
@@ -179,7 +178,7 @@ var TiagoScript = function drawMap(){
 
     function rankNeg(countries)
     {
-        console.log(countries.length);
+//        console.log(countries.length);
         var against_countries = countries;
         against_countries.sort(function(a, b) {
             return b.balance - a.balance;
@@ -359,7 +358,7 @@ var TiagoScript = function drawMap(){
     }
 
     function countCountrySentimentInASpecificDay(tweets, countryName, day)     {
-        console.log("t" + tweets.length);
+//        console.log("t" + tweets.length);
         var sentiment = 0.0;
         var sentimentAccumulator = 0.0;
         var sentimentCount = 0.0;
@@ -554,7 +553,7 @@ var TiagoScript = function drawMap(){
             if(country_list[i].id == country.id)
             {
                 if(country_list[i].sentiment != country.sentiment) {
-                    console.log("++++++++++");
+//                    console.log("++++++++++");
                     country_list[i].sentiment = country.sentiment;
                 }
 
@@ -629,7 +628,7 @@ var TiagoScript = function drawMap(){
             })
         })
         myCountries = countries;
-        console.log(myCountries);
+//        console.log(myCountries);
         svg.selectAll('.country')
             .data(countries)
             .enter()
@@ -672,7 +671,7 @@ var TiagoScript = function drawMap(){
                 // console.log('in')
             })
             .on('click', function() {
-                console.log("cc " + currentDay.toString());
+//                console.log("cc " + currentDay.toString());
                 d3.select("#filterBox")[0][0].value = d3.select(this).attr('data-name');
                 textOnChange();
                 if (selection.localeCompare("numTweets".toLowerCase()) == 0) {

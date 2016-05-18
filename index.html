@@ -42,7 +42,7 @@
         display: inline-block;
         float: left;
         width: 20vw;
-        height: 95vh;
+        height: 96vh;
         stroke: #000;
         border:solid 1px black;
         padding: 0px;
@@ -50,15 +50,11 @@
         text-space-collapse: discard;
     }
 
-    #listTweetsLabel {
-        height: 3%;
-    }
-
     #listtweets {
         padding:0px;
         margin: 0px;
         width: 100%;
-        height: 95%;
+        height: 100%;
         overflow:auto;
         overflow-y:scroll;
         overflow-x: hidden;
@@ -74,19 +70,15 @@
         display: inline-block;
         float:left;
         width: 43vw;
-        height: 95vh;
+        height: 96vh;
         border: solid 1px black;
         padding: 0px;
         margin-left: 0px;
         text-space-collapse: discard;
     }
 
-    #tweetDistLabel{
-        height: 3%;
-    }
-
     #chartmap{
-        height: 80%;
+        height: 85%;
         border-bottom: solid 1px black;
     }
 
@@ -145,16 +137,12 @@
         margin-right: -6px;
         padding: 0px;
         width: 37vw;
-        height: 95vh;
+        height: 96vh;
         text-space-collapse: discard;
     }
 
-    #tweetTimeLabel{
-        height: 3%;
-    }
-
     #chartotaltweets{
-        height: 45%;
+        height: 50%;
     }
 
     #hashtagHistDiv{
@@ -230,15 +218,12 @@
 
     <div id="maindiv">
         <div id="leftPanel">
-            <h2 id="listTweetsLabel">Tweets</h2>
             <ul id="listtweets"></ul>
         </div>
         <div id="middlePanel">
-            <h2 id="tweetDistLabel">Tweets Distribution</h2>
             <svg id="chartmap">
             </svg>
-            <input id="timeSlider" type="range" min="1" max="35"
-                   value="1"/>
+            <input id="timeSlider" type="range" min="1" max="35" value="1" onchange="sliderChange(this.value)" oninput="sliderChange(this.value)"/>
             <div id="adjustPanel">
                 <div id="leftAdjustPanel">
                     <label>Filter:</label>
@@ -255,7 +240,6 @@
             </div>
         </div>
         <div id="rightPanel">
-            <h2 id="tweetTimeLabel">Tweets over Time</h2>
             <svg id="chartotaltweets"></svg>
             <div id="hashtagHistDiv">
                 <h2 id="hashLabel">Hashtags</h2>
@@ -287,15 +271,29 @@
     function comboBoxOnChange(){
         changeSelectOption(comboBox.value);
 
-        AhmedScript.prepareData(textBox.value);
+        AhmedScript.prepareData(textBox.value, getSliderValue());
         AhmedScript.changeHistogram(comboBox.value);
     }
     function textOnChange(){
-        AhmedScript.prepareData(textBox.value);
+        AhmedScript.prepareData(textBox.value, getSliderValue());
         AhmedScript.changeHistogram(comboBox.value);
         
         selectData(textBox.value, comboBox.value);
     }
+    
+    function getSliderValue(){
+        var day = (parseInt(timeSlider.value) + 10) % 31;
+        console.log(day);
+        var month = (parseInt(timeSlider.value) + 10) / 31 > 1? 5:4;
+        return month + "/" + day;
+    }
+    
+    function sliderChange(value){
+        console.log(getSliderValue());
+        AhmedScript.prepareData(textBox.value, getSliderValue());
+        AhmedScript.changeHistogram(comboBox.value);
+    }
+    
     function clearTextBox(){
         textBox.value = "";
         textOnChange();
