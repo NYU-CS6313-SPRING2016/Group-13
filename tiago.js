@@ -8,9 +8,10 @@ var TiagoScript = function drawMap(){
 
     var myCountries = [];
 
-    var currentDay = 11;
+    var currentDay = "11";
 
     var stringDate = "Date: 04/11";
+    var dateParam = stringDate.substring(6) + "/2016";
 
     d3.json("gamergate.json", function(error, result)
     {
@@ -29,13 +30,19 @@ var TiagoScript = function drawMap(){
         else if(parseInt(this.value) > 20)
         {
             currentDay = parseInt(this.value) - 20;
-            stringDate = "Date: 05/" + currentDay;
+            if(currentDay >= 1 && currentDay <= 9)
+            {
+                currentDay = "0" + currentDay;
+                stringDate = "Date: 05/" + currentDay;
+            }
+            else
+            {
+                stringDate = "Date: 05/" + currentDay;
+            }
         }
-        loadCountryListBasedOnDay(currentDay.toString());
+        dateParam = stringDate.substring(6) + "/2016";
+        loadCountryListBasedOnDate(dateParam);
     });
-
-
-//    console.log("c " + currentDay);
 
     var check = false;
 
@@ -81,20 +88,20 @@ var TiagoScript = function drawMap(){
         .attr("class", "graticule")
         .attr("d", path);
 
-    var textTooltip = d3.select("#tooltip").append('text');
+    var textTooltip = d3.select("#tooltipaux").append('text');
 
     var textSlider =  svg.append("text")         // append text
         .style("fill", "red")   // fill the text with the colour black
         .attr("x", 480)           // set x position of left side of text
         .attr("y", 20)
-        //.text(" Date: 04/" + 11);
+    //.text(" Date: 04/" + 11);
 
     var textSupportive = svg.append("text")         // append text
         .style("fill", "blue")   // fill the text with the colour black
         .attr("x", 10)           // set x position of left side of text
         .attr("y", 20)           // set y position of bottom of text
 
-        //.text("Most supportive countries on " + textSlider);
+    //.text("Most supportive countries on " + textSlider);
 
     var support1 = svg.append("text")         // append text
         .style("fill", "black")   // fill the text with the colour black
@@ -142,7 +149,6 @@ var TiagoScript = function drawMap(){
 
     function supportiveCountries(countries)
     {
-//        console.log(countries.length);
         var supportiveCountries = countries;
         supportiveCountries.sort(function(a, b) {
             return b.sentiment - a.sentiment;
@@ -154,7 +160,6 @@ var TiagoScript = function drawMap(){
 
     function againstCountries(countries)
     {
-//        console.log(countries.length);
         var against_countries = countries;
         against_countries.sort(function(a, b) {
             return a.sentiment - b.sentiment;
@@ -166,7 +171,6 @@ var TiagoScript = function drawMap(){
 
     function rankPos(countries)
     {
-//        console.log(countries.length);
         var against_countries = countries;
         against_countries.sort(function(a, b) {
             return a.balance - b.balance;
@@ -178,7 +182,6 @@ var TiagoScript = function drawMap(){
 
     function rankNeg(countries)
     {
-//        console.log(countries.length);
         var against_countries = countries;
         against_countries.sort(function(a, b) {
             return b.balance - a.balance;
@@ -201,23 +204,20 @@ var TiagoScript = function drawMap(){
         return filtered_countries;
     }
 
-    console.log(showList());
-
     /*FUNCTIONS*/
     function loadCountryList()
     {
         d3.tsv("world-country-names.tsv", function(error, data) {
             if (error) throw error;
             data.forEach(function(d) {
-                var sentiment = countCountrySentiment(tweets, d.name);
+                var sentiment = countCountrySentimentInASpecificDate(tweets, d.name, dateParam);
                 var c = new Country(d.id, d.name.toLowerCase(), sentiment);
                 country_list.push(c);
             });
-
             queue()
                 .defer(d3.json, "world-110m2.json")
                 .defer(d3.tsv, "world-country-names.tsv")
-                .await(ready)
+                .await(ready);
 
             var listSupport = supportiveCountries(country_list);
             var listAgainst = againstCountries(country_list);
@@ -230,9 +230,7 @@ var TiagoScript = function drawMap(){
             non_supp1.text("1. " + listAgainst[0].name);
             non_supp2.text("2. " + listAgainst[1].name);
             non_supp3.text("3. " + listAgainst[2].name);
-
-            loadCountryListBasedOnDay(currentDay);
-
+            loadCountryListBasedOnDate(dateParam);
         });
 
     }
@@ -292,6 +290,50 @@ var TiagoScript = function drawMap(){
 
     }
 
+    function loadCountryListBasedOnDate(date)
+    {
+        //var new_country_list = [];
+        d3.tsv("world-country-names.tsv", function (error, data) {
+            if (error) throw error;
+            if (country_list.length == 0) {
+                data.forEach(function (d) {
+                    var sentiment = countCountrySentimentInASpecificDate(tweets, d.name, date);
+                    var c = new Country(d.id, d.name.toLowerCase(), sentiment);
+                    country_list.push(c);
+                });
+            } else {
+                data.forEach(function (d) {
+                    var sentiment = countCountrySentimentInASpecificDate(tweets, d.name, date);
+                    var c = new Country(d.id, d.name.toLowerCase(), sentiment);
+                    updateCountry(c);
+                });
+            }
+            svg.selectAll(".country")
+                .data(myCountries)
+                .style('opacity', 0.7)
+                .style("fill", newColorCountry);
+
+            var listSupport = supportiveCountries(country_list);
+            var listAgainst = againstCountries(country_list);
+
+            textSupportive.text("Most supportive countries");
+            support1.text("1. " + listSupport[0].name);
+            support2.text("2. " + listSupport[1].name);
+            support3.text("3. " + listSupport[2].name);
+            leastSupp.text("Least supportive countries");
+            non_supp1.text("1. " + listAgainst[0].name);
+            non_supp2.text("2. " + listAgainst[1].name);
+            non_supp3.text("3. " + listAgainst[2].name);
+        });
+
+        //var new_country_list = nova(day, country_list);
+
+        textSlider.text(stringDate);
+
+        //currentDay = day;
+
+    }
+
     d3.select("#checkMonth").on("change", function() {
         d3.tsv("world-country-names.tsv", function(error, data) {
             if (error) throw error;
@@ -318,12 +360,12 @@ var TiagoScript = function drawMap(){
 
     function dateFormatter(date, day)     {
         var day_ = "";
-        if(date.includes("/" + day + "/")) 
+        if(date.includes("/" + day + "/"))
         {
             day_ = "/" + day + "/";
             while(day_.includes("/"))             {
                 day_ = day_.replace("/", "");
-            } 
+            }
         }
         return day_;
     }
@@ -332,6 +374,19 @@ var TiagoScript = function drawMap(){
         var tweets_of_the_day = [];
         for (var i = 0; i < tweets.length; i++)         {
             if(tweets[i].time.includes("/" + day + "/"))             {
+                tweets_of_the_day.push(tweets[i]);
+            }
+        }
+        return tweets_of_the_day;
+    }
+
+    function retrieveTweetsForThisDate(tweets, date) {
+
+        var tweets_of_the_day = [];
+        console.log("BBBBBBBBBBBBBB");
+        console.log(tweets);
+        for (var i = 0; i < tweets.length; i++) {
+            if(tweets[i].time.toString().localeCompare(date.toString()) == 0) {
                 tweets_of_the_day.push(tweets[i]);
             }
         }
@@ -358,12 +413,39 @@ var TiagoScript = function drawMap(){
     }
 
     function countCountrySentimentInASpecificDay(tweets, countryName, day)     {
-//        console.log("t" + tweets.length);
+
         var sentiment = 0.0;
         var sentimentAccumulator = 0.0;
         var sentimentCount = 0.0;
         var sentimentAvg = 0.0;
         var tweets_of_the_day = retrieveTweetsForThisDay(tweets, day);
+        for(var i = 0; i < tweets_of_the_day.length; i++)         {
+            if(tweets_of_the_day[i].location.length > 0) {
+                var c1 = tweets_of_the_day[i].location.toLowerCase();
+                var c2 = countryName.toLowerCase();
+                if (c1.localeCompare(c2) == 0)
+                {
+                    sentimentAccumulator = sentimentAccumulator + parseFloat(tweets_of_the_day[i].sentiment);
+                    sentimentCount = sentimentCount + 1.0;
+                }
+            }
+        }
+        if(sentimentCount > 0.0) {
+            sentimentAvg = sentimentAccumulator / sentimentCount;
+        }else{
+            sentimentAvg = 10;
+        }
+        sentiment = Idistance(sentimentAvg);
+        return sentiment;
+    }
+
+    function countCountrySentimentInASpecificDate(tweets, countryName, date)     {
+        var sentiment = 0.0;
+        var sentimentAccumulator = 0.0;
+        var sentimentCount = 0.0;
+        var sentimentAvg = 0.0;
+        var tweets_of_the_day = retrieveTweetsForThisDate(tweets, date);
+
         for(var i = 0; i < tweets_of_the_day.length; i++)         {
             if(tweets_of_the_day[i].location.length > 0) {
                 var c1 = tweets_of_the_day[i].location.toLowerCase();
@@ -487,6 +569,69 @@ var TiagoScript = function drawMap(){
         return count;
     }
 
+    function totalTweetsOfThisCountryOnThisDate(country, date)
+    {
+        var count = 0;
+        for(var i = 0; i < tweets.length; i++)
+        {
+            if (tweets[i].location.length > 0) {
+                if(tweets[i].time.localeCompare(date) == 0) {
+                    var c1 = tweets[i].location.toLowerCase();
+                    var c2 = country.toLowerCase();
+                    if (c1.localeCompare(c2) == 0) {
+                        count++;
+                    }
+                }
+            }
+        }
+        return count;
+    }
+
+    function t_neg(country, data) {
+        var neg = 0.0;
+        var total = 0.0;
+        var twits_of_the_date = retrieveTweetsForThisDate(tweets, data);
+        console.log("OPOPOPOPOPOP");
+        console.log(twits_of_the_date);
+        for (var i = 0; i < twits_of_the_date.length; i++) {
+            if (twits_of_the_date[i].location.length > 0) {
+                if (twits_of_the_date[i].time.localeCompare(data) == 0) {
+
+                    var c1 = twits_of_the_date[i].location.toLowerCase();
+                    var c2 = country.toLowerCase();
+                    if (c1.localeCompare(c2) == 0) {
+                        if (parseFloat(twits_of_the_date[i].sentiment) < 0.0) {
+                            neg = neg + 1.0;
+                        }
+                        total = total + 1.0;
+                    }
+                }
+            }
+        }
+        return formatDec(neg / total).toString();
+    }
+
+    function t_pos(country, data) {
+        var pos = 0.0;
+        var total = 0.0;
+        var twits_of_the_date = retrieveTweetsForThisDate(tweets, data);
+        for (var i = 0; i < twits_of_the_date.length; i++) {
+            if (twits_of_the_date[i].location.length > 0) {
+                if (twits_of_the_date[i].time.localeCompare(data) == 0) {
+                    var c1 = twits_of_the_date[i].location.toLowerCase();
+                    var c2 = country.toLowerCase();
+                    if (c1.localeCompare(c2) == 0) {
+                        if (parseFloat(twits_of_the_date[i].sentiment) > 0.0) {
+                            pos = pos + 1.0;
+                        }
+                        total = total + 1.0;
+                    }
+                }
+            }
+        }
+        return formatDec(pos / total).toString();
+    }
+
     function printTotalPos(country, day)
     {
         var pos = totalPosOfThisCountryOnThisDay(country, day);
@@ -553,7 +698,6 @@ var TiagoScript = function drawMap(){
             if(country_list[i].id == country.id)
             {
                 if(country_list[i].sentiment != country.sentiment) {
-//                    console.log("++++++++++");
                     country_list[i].sentiment = country.sentiment;
                 }
 
@@ -628,7 +772,6 @@ var TiagoScript = function drawMap(){
             })
         })
         myCountries = countries;
-//        console.log(myCountries);
         svg.selectAll('.country')
             .data(countries)
             .enter()
@@ -667,38 +810,21 @@ var TiagoScript = function drawMap(){
                     x: xCentroid - (textWidth / 2),
                     y: Number(yBottom) + (countryName === 'Antarctica' ? -70 : 15),
                 })
-                nameTag.style('visibility', 'visible')
-                // console.log('in')
+                nameTag.style('visibility', 'visible');
             })
             .on('click', function() {
-//                console.log("cc " + currentDay.toString());
                 d3.select("#filterBox")[0][0].value = d3.select(this).attr('data-name');
                 textOnChange();
                 if (selection.localeCompare("numTweets".toLowerCase()) == 0) {
-                    textTooltip.style({
-                        position: "absolute",
-                        visibility: "visible",
-                        opacity: 1,
-                        fill: "blue",
-                        top: d3.event.clientY + "px",
-                        left: d3.event.clientX + "px"
-                    }).text(d3.select(this).attr('data-name') + "\t\n" + "Total Tweets: " +
-                        totalTweetsOfThisCountryOnThisDay(d3.select(this).attr('data-name'), currentDay))
+                    textTooltip.text("\t\n" + "Total Tweets: " + "\n" +
+                        totalTweetsOfThisCountryOnThisDate(d3.select(this).attr('data-name'), dateParam)).fontcolor("red")
                 } else if (selection.localeCompare("avgSentiment".toLowerCase()) == 0) {
-                    textTooltip.style({
-                        position: "absolute",
-                        visibility: "visible",
-                        opacity: 1,
-                        fill: "blue",
-                        top: d3.event.clientY + "px",
-                        left: d3.event.clientX + "px"
-                    }).text(d3.select(this).attr('data-name') + "\t\n" + "Pos: " +
-                        printTotalPos(d3.select(this).attr('data-name'), currentDay.toString()) + " " +
-                        "Neg: " + printTotalNeg(d3.select(this).attr('data-name'), currentDay.toString()))
+                    textTooltip.text("Pos: " + t_pos(d3.select(this).attr('data-name'), dateParam) + "\n" +
+                        "Neg: -" + t_neg(d3.select(this).attr('data-name'), dateParam))
+
                 }
             })
             .on('mouseout', function() {
-                //console.log('out')
                 d3.select(this).style('opacity', 0.7)
                 nameTag.style('visibility', 'hidden')
             })
