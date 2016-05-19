@@ -6,7 +6,8 @@ var printableData = [];
 
 var gmargin = {top: 20, right: 20, bottom: 30, left: 40},
     gwidth = document.getElementById('rightPanel').offsetWidth - gmargin.left - gmargin.right,
-    gheight = document.getElementById('rightPanel').offsetHeight / 2 -  
+    gheight = document.getElementById('rightPanel').offsetHeight / 2 - 
+         
         gmargin.top - gmargin.bottom;
 
 var formatDec = d3.format(".2f");
@@ -26,11 +27,11 @@ d3.select("#negCheckbox").property('checked', true);
 
 function changePos() {
    isPosChecked = this.checked;
-   console.log(this.value+" test "+this.checked);
+   //console.log(this.value+" test "+this.checked);
 }
 function changeNeg() {
    isNegChecked = this.checked;
-   console.log(this.value+" test "+this.checked);
+   //console.log(this.value+" test "+this.checked);
     
 }
 
@@ -41,7 +42,7 @@ function changeSelectOption(value) {
         d3.select("#chartotaltweets > *").remove();
         printTotalGraph(printableData);
     } else {
-        console.log("other");
+        //console.log("other");
         d3.select("#chartotaltweets > *").remove();
         printAverageGraph(printableData);
     }
@@ -114,11 +115,13 @@ function sortByDateAscending(a, b) {
 }
 
 d3.json("data.json", function(error,result) {
-    result = type(result);
+    //result = type(result);
     
-    result = result.sort(sortByDateAscending);
+    //result = result.sort(sortByDateAscending);
+    result = type(result);
+    //console.log(result[0].time);
     gdata = result;
-    //console.log("here");
+    ////console.log("here");
     //console.log(gdata);
     
     nestedData = d3.nest()
@@ -127,7 +130,7 @@ d3.json("data.json", function(error,result) {
         .entries(gdata);
     
     
-    
+    //console.log(nestedData);
 
     selectData("",null);
 
@@ -135,8 +138,8 @@ d3.json("data.json", function(error,result) {
 
 }); 
 
-
-function selectData(filterChoice,type) {
+var dates;
+function selectData(filterChoice,type,timeSlider) {
     var country="", username="",hashtag="";
     var aux = filterChoice.toLowerCase().split(",");
     for(var i = 0; i < aux.length; i++) {
@@ -160,18 +163,22 @@ function selectData(filterChoice,type) {
         }
     }*/
     
-    printTweets(gdata,country,username,hashtag);
+    
 
    
     //printableData = new Array(nestedData.length);
 
-    var dates = new Array(gdata.length);
-    for(var i =0; i < gdata.length; i++) {
-        dates[i] = gdata[i].time;
+    dates = new Array(nestedData.length);
+    for(var i =0; i < nestedData.length; i++) {
+        dates[i] = nestedData[i].key;
         //console.log(gdata[i]);
     }
+    
+    
+    
+    
+    
     printableData = [];
-
     for(var i =0; i < nestedData.length; i++) {
         var p = 0, n = 0,size = 0, neu = 0;
         for(var j = 0; j < nestedData[i].values.length; j++) {
@@ -188,6 +195,8 @@ function selectData(filterChoice,type) {
                 size++;
            }
         }
+        
+        
         if(size > 0) {
             printableData.push({
                 size:size,
@@ -196,17 +205,23 @@ function selectData(filterChoice,type) {
                 neg: n / size,
                 posnum:p,
                 negnum:n,
-                neunum:neu
+                neunum:neu,
+                date:nestedData[i].values[0].date
             });
+            
         }
     }
-
+    
+    printTweets(gdata,country,username,hashtag,timeSlider);
+    //console.log(printableData);
+    x.domain([d3.min(dates),d3.max(dates)]);
 //    console.log("result "+ gdata.length);
 //    console.log(nestedData);
     //console.log(printableData);
 
     minDate = d3.min(dates);
     maxDate = d3.max(dates);
+    
 //    console.log(minDate);
 //    console.log(maxDate);
 
@@ -217,6 +232,9 @@ function selectData(filterChoice,type) {
         printAverageGraph(printableData);
     else
         printTotalGraph(printableData);
+    
+    if( timeSlider!= null)
+    changeLineInGraph(timeSlider);
 }
 
 
@@ -235,20 +253,68 @@ list.selectAll("li")
     .style("color",undefined);
 }*/
 
+// from here: http://stackoverflow.com/a/1968345/16363
+var hoverLine = null;
+
+function changeLineInGraph(sliderInt) {
+    //console.log(dates);
+    //console.log((sliderInt-1)+" "+dates[sliderInt-1]+" "+x(dates[sliderInt-1]));
+    hoverLine.attr("x1", x(dates[sliderInt-1]))     // x position of the first end of the line
+      .attr("x2", x(dates[sliderInt-1]));
+}
+
+function printMouse(d,i) {
+    //function(d,i){ 
+        //tip.show
+            //highlight(d);
+    //    console.log(d3.event.clientX+","+d3.event.clientY);
+            d3.select("#tooltip").style({
+                                        position:"absolute",
+                                        visibility: "visible",
+                                         opacity:1,
+                                        top:d3.event.clientY + "px",
+                                        left:d3.event.clientX + "px"    
+                                        }).html(
+                                            "Date: "+formatDate(d.date)+"<br>"+
+                                            "Pos: "+formatDec(d.posnum)+"<br>"+
+                                            "Neg: "+formatDec(d.negnum)+"<br>" +
+                                            "Neu: "+formatDec(d.neunum)+"<br>" +
+                                            "Total: "+d.size);
+      //  }
+}
+
 function printTotalGraph(printableData) {
     d3.select("#chartotaltweets > *").remove();
-    x.domain(d3.extent(printableData, function(d) { return d.time; }))
-    ;
+    
     
     y.domain([0,d3.max(printableData,function(d) { return Math.max(d.posnum,Math.max(d.negnum,d.neunum)); })]);//d3.extent(printableData, function(d) { return d.size; }));
 
     var svg = d3.select("#chartotaltweets")//("body").append("svg")
         .attr("width", gwidth + gmargin.left + gmargin.right)
         .attr("height", gheight + gmargin.top + gmargin.bottom)
-        
+        /*.on('mouseenter',function(d,i){ 
+        //tip.show
+            //highlight(d);
+    //    console.log(d3.event.clientX+","+d3.event.clientY);
+            d3.select("#tooltip").style({
+                                        position:"absolute",
+                                        visibility: "visible",
+                                         opacity:1,
+                                        top:d3.event.clientY + "px",
+                                        left:d3.event.clientX + "px"    
+                                        }).html(
+                                            "Possasa"+d);
+        })
+        .on('mouseleave',function(d,i){
+            //tip.hide
+           // hide();
+            d3.select("#tooltip").style({visibility: "hidden",
+                                        opacity:0});
+        })*/
         .append("g")
-        .attr("transform", "translate(" + gmargin.left + "," + gmargin.top + ")");
-
+        .attr("transform", "translate(" + gmargin.left + "," + gmargin.top + ")")
+    ;
+    
     svg.append("g")
       .attr("class", "axis")
       .attr("transform", "translate(0," + gheight + ")")
@@ -269,7 +335,18 @@ function printTotalGraph(printableData) {
       .style("text-anchor", "end")
       .text("Amount of tweets");
 
-
+    hoverLine = svg.append("line")
+      //.attr("class", "line")
+      //.attr("x1", printableData[0].time)     // x position of the first end of the line
+      //.attr("x2", printableData[printableData.length-1].time)      // y position of the first end of the line
+      .attr("x1", 0)     // x position of the first end of the line
+      .attr("x2", 0)      // y position of the first end of the line
+      .attr("y1", 0)     // x position of the second end of the line
+      .attr("y2", gheight)
+    //.attr("opacity",0)
+      .style("stroke",'grey');
+    ///.x(function(d) { return x(d.time); })
+    //.y(function(d) { return y(d.size); });
 
     svg.append("path")
       .attr("class", "line")
@@ -286,6 +363,8 @@ function printTotalGraph(printableData) {
       .attr("d", lineTotNeu(printableData))
             .style("stroke",'dimgray');
 
+    var parseDate = d3.time.format("%d");
+
     svg.selectAll(".dot")
       .data(printableData)
       .enter().append("circle")
@@ -296,22 +375,7 @@ function printTotalGraph(printableData) {
       .attr('fill', 'blue')
       .attr('stroke', 'blue')
       .attr('stroke-width', '3')
-      .on('mouseenter',function(d,i){ 
-        //tip.show
-            //highlight(d);
-    //    console.log(d3.event.clientX+","+d3.event.clientY);
-            d3.select("#tooltip").style({
-                                        position:"absolute",
-                                        visibility: "visible",
-                                         opacity:1,
-                                        top:d3.event.clientY + "px",
-                                        left:d3.event.clientX + "px"    
-                                        }).html(
-                                            "Pos: "+formatDec(d.posnum)+"<br>"+
-                                            "Neg: "+formatDec(d.negnum)+"<br>" +
-                                            "Neu: "+formatDec(d.neunum)+"<br>" +
-                                            "Total: "+d.size);
-        })
+      .on('mouseenter',function(d,i){ printMouse(d,i)})
         .on('mouseleave',function(d,i){
             //tip.hide
            // hide();
@@ -329,22 +393,7 @@ function printTotalGraph(printableData) {
       .attr('fill', 'red')
       .attr('stroke', 'red')
       .attr('stroke-width', '3')
-      .on('mouseenter',function(d,i){ 
-        //tip.show
-            //highlight(d);
-    //    console.log(d3.event.clientX+","+d3.event.clientY);
-            d3.select("#tooltip").style({
-                                        position:"absolute",
-                                        visibility: "visible",
-                                         opacity:1,
-                                        top:d3.event.clientY + "px",
-                                        left:d3.event.clientX + "px"    
-                                        }).html(
-                                            "Pos: "+formatDec(d.posnum)+"<br>"+
-                                            "Neg: "+formatDec(d.negnum)+"<br>" +
-                                            "Neu: "+formatDec(d.neunum)+"<br>" +
-                                            "Total: "+d.size);
-        })
+      .on('mouseenter',function(d,i){ printMouse(d,i)})
         .on('mouseleave',function(d,i){
             //tip.hide
            // hide();
@@ -362,22 +411,7 @@ function printTotalGraph(printableData) {
       .attr('fill', 'dimgrey')
       .attr('stroke', 'dimgrey')
       .attr('stroke-width', '3')
-      .on('mouseenter',function(d,i){ 
-        //tip.show
-            //highlight(d);
-    //    console.log(d3.event.clientX+","+d3.event.clientY);
-            d3.select("#tooltip").style({
-                                        position:"absolute",
-                                        visibility: "visible",
-                                         opacity:1,
-                                        top:d3.event.clientY + "px",
-                                        left:d3.event.clientX + "px"    
-                                        }).html(
-                                            "Pos: "+formatDec(d.posnum)+"<br>"+
-                                            "Neg: "+formatDec(d.negnum)+"<br>" +
-                                            "Neu: "+formatDec(d.neunum)+"<br>" +
-                                            "Total: "+d.size);
-        })
+      .on('mouseenter',function(d,i){ printMouse(d,i)})
         .on('mouseleave',function(d,i){
             //tip.hide
            // hide();
@@ -388,7 +422,7 @@ function printTotalGraph(printableData) {
 
 function printAverageGraph(printableData) {
         d3.select("#chartotaltweets > *").remove();
-    x.domain(d3.extent(printableData, function(d) { return d.time; }));
+    //x.domain(d3.extent(printableData, function(d) { return d.time; }));
     y.domain([0,1]);//d3.extent(printableData, -1,function(d) { return Math.max(d.pos,d.neg) * 2; }));
 
     var svg = d3.select("#chartotaltweets")//("body").append("svg")
@@ -431,6 +465,17 @@ function printAverageGraph(printableData) {
       .attr("d", lineNeg(printableData))
         .style("stroke",'red');
 
+    hoverLine = svg.append("line")
+      //.attr("class", "line")
+      //.attr("x1", printableData[0].time)     // x position of the first end of the line
+      //.attr("x2", printableData[printableData.length-1].time)      // y position of the first end of the line
+      .attr("x1", 0)     // x position of the first end of the line
+      .attr("x2", 0)      // y position of the first end of the line
+      .attr("y1", 0)     // x position of the second end of the line
+      .attr("y2", gheight)
+    //.attr("opacity",0)
+      .style("stroke",'grey');
+    
     svg.selectAll(".dot")
       .data(printableData)
       .enter().append("circle")
@@ -441,21 +486,7 @@ function printAverageGraph(printableData) {
       .attr('fill', 'white')
       .attr('stroke', 'blue')
       .attr('stroke-width', '3')
-      .on('mouseenter',function(d,i){ 
-        //tip.show
-            //highlight(d);
-    //    console.log(d3.event.clientX+","+d3.event.clientY);
-            d3.select("#tooltip").style({
-                                        position:"absolute",
-                                        visibility: "visible",
-                                         opacity:1,
-                                        top:d3.event.clientY + "px",
-                                        left:d3.event.clientX + "px"    
-                                        }).html(
-                                            "Pos: "+formatDec(d.pos)+"<br>"+
-                                            "Neg: "+formatDec(d.neg)+"<br>" +
-                                            "Total: "+d.size);
-        })
+      .on('mouseenter',function(d,i){ printMouse(d,i)})
         .on('mouseleave',function(d,i){
             //tip.hide
            // hide();
@@ -473,21 +504,7 @@ function printAverageGraph(printableData) {
       .attr('fill', 'white')
       .attr('stroke', 'red')
       .attr('stroke-width', '3')
-      .on('mouseenter',function(d,i){ 
-        //tip.show
-            //highlight(d);
-    //    console.log(d3.event.clientX+","+d3.event.clientY);
-            d3.select("#tooltip").style({
-                                        position:"absolute",
-                                        visibility: "visible",
-                                         opacity:1,
-                                        top:d3.event.clientY + "px",
-                                        left:d3.event.clientX + "px"    
-                                        }).html(
-                                            "Pos: "+formatDec(d.pos)+"<br>"+
-                                            "Neg: "+formatDec(d.neg)+"\t\n" +
-                                            "Total: "+d.size);
-        })
+      .on('mouseenter',function(d,i){ printMouse(d,i)})
         .on('mouseleave',function(d,i){
             //tip.hide
            // hide();
@@ -506,37 +523,39 @@ function printAverageGraph(printableData) {
 
 
 
-function printTweets(gData,country,username,hashtag) {
+function printTweets(gData,country,username,hashtag,sliderInt) {
 //list of tweets
     if(country != null)
         country = country.toLowerCase();
 
     d3.select("#listtweets > *").remove();
-    
+    //console.log(country);
     var tweD = [];
     for(var i = 0; i < gData.length; i++) {
         if((country == null || country == "" || (gData[i].location != null && gData[i].location == country)) &&
             (hashtag == null || hashtag == "" || (gData[i].keywords != null && hasTextHash(gData[i].keywords,hashtag)))&&
-            (username == null || username == "" || (gData[i].usernames != null && hasTextUser(gData[i].usernames,username)))) {
+            (username == null || username == "" || (gData[i].usernames != null && hasTextUser(gData[i].usernames,username))) &&
+            (sliderInt == null || (dates[sliderInt-1] == gData[i].time))) {
             tweD.push({
                 username:gData[i].username,
                 tweet:gData[i].tweet,
                 time:gData[i].time,
                 sentiment:gData[i].sentiment,
                 hashtags:gData[i].keywords,
-                usernames:gData[i].usernames
+                usernames:gData[i].usernames,
+                date:gData[i].date
             });
         //console.log(gData[i].username);
         }   
     }
-    console.log(tweD.length);
+    //console.log(tweD.length);
     
     list = d3.select("#listtweets").selectAll("li")
         .data(tweD, function(d) {return d.username+": "+d.tweet + " "+d.time;        })
     ;
     list.enter()
         .append("li")
-        .html(function(d) {return "<b>"+d.username+":</b><br> "+d.tweet + " <br>"}).attr("width",50)
+        .html(function(d) {return "<b>"+d.username+"</b> ("+ formatDate(d.date) +"):<br> "+d.tweet + " <br>"}).attr("width",50)
     .on('mouseenter',function(d,i){ 
         //tip.show
             //highlight(d);
@@ -548,6 +567,8 @@ function printTweets(gData,country,username,hashtag) {
                                         left:d3.event.clientX + "px"    
                                         }).html(
                                             "Sentiment: "+d.sentiment+"<br>"
+                
+                                            +d.tweet
                                             );
         })
         .on('mouseleave',function(d,i){
@@ -564,10 +585,12 @@ function type(d) {
 //console.log(d);
 for(var i = 0; i < d.length; i++) {
     //console.log("time"+d[i].time);
+    d[i].date = (formatDate.parse(""+d[i].time));
     d[i].time = +(formatDate.parse(d[i].time));
     d[i].support = +d[i].support;
     d[i].sentiment = +d[i].sentiment;
-  //  console.log("time2"+d[i].time);
+    //console.log("time2"+d[i].time);
+    //console.log(d[i].time);
 }
 //console.log("done");
 return d;

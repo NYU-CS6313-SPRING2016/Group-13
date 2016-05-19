@@ -277,7 +277,7 @@
         AhmedScript.prepareData(textBox.value, getSliderValue());
         AhmedScript.changeHistogram(comboBox.value);
         
-        selectData(textBox.value, comboBox.value);
+        selectData(textBox.value, comboBox.value,timeSlider.value);
     }
     
     function getSliderValue(){
@@ -289,6 +289,9 @@
     function sliderChange(value){
         AhmedScript.prepareData(textBox.value, getSliderValue());
         AhmedScript.changeHistogram(comboBox.value);
+        
+        selectData(textBox.value, comboBox.value,timeSlider.value);
+        changeLineInGraph(parseInt(timeSlider.value));
     }
     
     function clearTextBox(){
