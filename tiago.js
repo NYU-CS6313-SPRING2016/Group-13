@@ -396,18 +396,16 @@ var TiagoScript = function drawMap(){
     d3.select("#filterBox").on('input', function(){
 
         var user = this.value;
-
         console.log("char = " + user.charAt(0));
 
         if(user.charAt(0) == "#") {
             user = user.substring(1);
+            var tweets_of_the_user = retrieveTweetsForThisHash(user);
+            var locations = findHashLocations(tweets_of_the_user);
             svg.selectAll(".country")
                 .data(myCountries)
                 .style('opacity', function (d) {
                     var opacity = 0.5;
-                    var tweets_of_the_user = retrieveTweetsForThisHash(user);
-                    var locations = findHashLocations(tweets_of_the_user);
-
                     for (var i = 0; i < locations.length; i++) {
                         console.log("name = " + d.name);
                         if (d.name.toLowerCase().localeCompare(locations[i].name.toLowerCase()) == 0) {
@@ -423,12 +421,13 @@ var TiagoScript = function drawMap(){
         else if(user.charAt(0) == "@")
         {
             user = user.substring(1);
+            var tweets_of_the_user = retrieveTweetsForThisUser(user);
+            var locations = findUserLocations(tweets_of_the_user);
+
             svg.selectAll(".country")
                 .data(myCountries)
                 .style('opacity', function (d) {
                     var opacity = 0.5;
-                    var tweets_of_the_user = retrieveTweetsForThisUser(user);
-                    var locations = findUserLocations(tweets_of_the_user);
 
                     for (var i = 0; i < locations.length; i++) {
                         console.log("name = " + d.name);
