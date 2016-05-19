@@ -33,7 +33,7 @@ var TiagoScript = function drawMap(){
 
         svg.selectAll(".country")
             .data(myCountries)
-            .style('opacity', 0.7)
+            .style('opacity', 0.5)
             .style("fill", newColorCountry)
             .attr('d', path);
 
@@ -229,7 +229,7 @@ var TiagoScript = function drawMap(){
 
             svg.selectAll(".country")
                 .data(myCountries)
-                .style('opacity', 0.7)
+                .style('opacity', 0.5)
                 .style("fill", newColorCountry);
 
             var listSupport = supportiveCountries(country_list);
@@ -243,27 +243,31 @@ var TiagoScript = function drawMap(){
                 if(listSupport[i] != null) {
                     if (listSupport[i].name.length > 0) {
                         textContent = listSupport[i].name;
-                        supp[i].style("fill", "black")   // fill the text with the colour black
-                            .attr("x", posX)           // set x position of left side of text
-                            .attr("y", posY).text((i + 1).toString() + ". " + textContent);
-                        posY = posY + posX;
+                        if(supp[i] != null ) {
+                            supp[i].style("fill", "black")   // fill the text with the colour black
+                                .attr("x", posX)           // set x position of left side of text
+                                .attr("y", posY).text((i + 1).toString() + ". " + textContent);
+                            posY = posY + posX;
+                        }
                     }
                 }
             }
 
 
             var posX = 230; var posY = 30;
-            leastSupp.text("Least supportive countries");
+            leastSupp.text("Most hatred countries");
 
             for (var i = 0; i < listAgainst.length; i++) {
                 var textContent = "";
                 if(listAgainst[i] != null) {
                     if (listAgainst[i].name.length > 0) {
                         textContent = listAgainst[i].name;
-                        non_supp[i].style("fill", "black")   // fill the text with the colour black
-                            .attr("x", posX)           // set x position of left side of text
-                            .attr("y", posY).text((i + 1).toString() + ". " + textContent);
-                        posY = posY + 10;
+                        if(non_supp[i] != null) {
+                            non_supp[i].style("fill", "black")   // fill the text with the colour black
+                                .attr("x", posX)           // set x position of left side of text
+                                .attr("y", posY).text((i + 1).toString() + ". " + textContent);
+                            posY = posY + 10;
+                        }
                     }
                 }
             }
@@ -285,29 +289,8 @@ var TiagoScript = function drawMap(){
         }
     }
 
-    d3.select("#checkMonth").on("change", function() {
-        d3.tsv("world-country-names.tsv", function(error, data) {
-            if (error) throw error;
-            if(country_list.length == 0) {
-                data.forEach(function (d) {
-                    var sentiment = countCountrySentiment(tweets, d.name);
-                    var c = new Country(d.id, d.name.toLowerCase(), sentiment);
-                    country_list.push(c);
-                });
-            }else{
-                data.forEach(function (d) {
-                    var sentiment = countCountrySentiment(tweets, d.name);
-                    var c = new Country(d.id, d.name.toLowerCase(), sentiment);
-                    updateCountry(c);
-                });
-            }
-        });
-        svg.selectAll(".country")
-            .data(myCountries)
-            .style('opacity', 0.7)
-            .style("fill", newColorCountry);
-        check = !check;
-    });
+
+
 
     function dateFormatter(date, day)     {
         var day_ = "";
@@ -321,16 +304,6 @@ var TiagoScript = function drawMap(){
         return day_;
     }
 
-    function retrieveTweetsForThisDay(tweets, day) {
-        var tweets_of_the_day = [];
-        for (var i = 0; i < tweets.length; i++)         {
-            if(tweets[i].time.includes("/" + day + "/"))             {
-                tweets_of_the_day.push(tweets[i]);
-            }
-        }
-        return tweets_of_the_day;
-    }
-
     function retrieveTweetsForThisDate(tweets, date) {
 
         var tweets_of_the_day = [];
@@ -342,52 +315,134 @@ var TiagoScript = function drawMap(){
         return tweets_of_the_day;
     }
 
+    function retrieveTweetsForThisUser(user) {
 
-    function nova(day, list_of_countries)
-    {
-        var new_country_list = [];
-        var tweets_of_the_day = retrieveTweetsForThisDay(tweets, day);
-        for(var i = 0; i < tweets_of_the_day.length; i++)         {
-            for(var j = 0; j < list_of_countries.length; j++) {
-                if (tweets_of_the_day[i].location.length > 0) {
-                    var c1 = tweets_of_the_day[i].location.toLowerCase();
-                    var c2 = list_of_countries[j].name.toLowerCase();
-                    if (c1.localeCompare(c2) == 0) {
-                        new_country_list.push(country);
+        var tweets_of_the_user = [];
+        for (var i = 0; i < tweets.length; i++) {
+
+            var t1 = tweets[i].username.toLowerCase();
+            var t2 = user.toLowerCase();
+            //console.log("t1 = " + t1);
+            //console.log("t2 = " + t2);
+            if(t1.localeCompare(t2) == 0) {
+                tweets_of_the_user.push(tweets[i]);
+            }
+        }
+        console.log(tweets_of_the_user);
+        return tweets_of_the_user;
+    }
+
+    function retrieveTweetsForThisHash(hashtag) {
+
+        var tweets_of_the_hash = [];
+        for (var i = 0; i < tweets.length; i++) {
+            if(tweets[i].keywords != null && tweets[i].location.localeCompare("") != 0) {
+                var hash = tweets[i].keywords.word;
+                for (var j = 0; j < hash.length; j++) {
+                    if (hashtag.toLowerCase().localeCompare(hash[j].toLowerCase()) == 0) {
+                        tweets_of_the_hash.push(tweets[i]);
                     }
                 }
             }
         }
-        return new_country_list;
+        tweets_of_the_hash = uniq(tweets_of_the_hash);
+        console.log(tweets_of_the_hash);
+        return tweets_of_the_hash;
     }
 
-    function countCountrySentimentInASpecificDay(tweets, countryName, day)     {
-
-        var sentiment = 0.0;
-        var sentimentAccumulator = 0.0;
-        var sentimentCount = 0.0;
-        var sentimentAvg = 0.0;
-        var tweets_of_the_day = retrieveTweetsForThisDay(tweets, day);
-        for(var i = 0; i < tweets_of_the_day.length; i++)         {
-            if(tweets_of_the_day[i].location.length > 0) {
-                var c1 = tweets_of_the_day[i].location.toLowerCase();
-                var c2 = countryName.toLowerCase();
-                if (c1.localeCompare(c2) == 0)
-                {
-                    sentimentAccumulator = sentimentAccumulator + parseFloat(tweets_of_the_day[i].sentiment);
-                    sentimentCount = sentimentCount + 1.0;
+    function findHashLocations(twits_of_the_hash)
+    {
+        var locations = [];
+        for (var i = 0; i < twits_of_the_hash.length; i++) {
+            for(var j = 0; j < country_list.length; j++) {
+                //console.log("tw = " + tweets[i].location);
+                //console.log("ct = " + country_list[j].name);
+                if (twits_of_the_hash[i].location.toLowerCase().localeCompare(country_list[j].name.toLowerCase()) == 0) {
+                    locations.push(country_list[j]);
                 }
             }
         }
-        if(sentimentCount > 0.0) {
-            sentimentAvg = sentimentAccumulator / sentimentCount;
-        }else{
-            sentimentAvg = 10;
-        }
-        sentiment = Idistance(sentimentAvg);
-        return sentiment;
+        locations = uniq(locations);
+        console.log(locations);
+        return locations;
     }
 
+    function findUserLocations(twits_of_the_user)
+    {
+        var locations = [];
+        for (var i = 0; i < twits_of_the_user.length; i++) {
+            for(var j = 0; j < country_list.length; j++) {
+                //console.log("tw = " + tweets[i].location);
+                //console.log("ct = " + country_list[j].name);
+                if (twits_of_the_user[i].location.toLowerCase().localeCompare(country_list[j].name.toLowerCase()) == 0) {
+                    locations.push(country_list[j]);
+                }
+            }
+        }
+        locations = uniq(locations);
+        console.log(locations);
+        return locations;
+    }
+
+    function uniq(a) {
+        return Array.from(new Set(a));
+    }
+
+    d3.select("#clearButton").on("click", function()
+    {
+       loadCountryListBasedOnDate(dateParam);
+    });
+
+    d3.select("#filterBox").on('input', function(){
+
+        var user = this.value;
+
+        console.log("char = " + user.charAt(0));
+
+        if(user.charAt(0) == "#") {
+            user = user.substring(1);
+            svg.selectAll(".country")
+                .data(myCountries)
+                .style('opacity', function (d) {
+                    var opacity = 0.5;
+                    var tweets_of_the_user = retrieveTweetsForThisHash(user);
+                    var locations = findHashLocations(tweets_of_the_user);
+
+                    for (var i = 0; i < locations.length; i++) {
+                        console.log("name = " + d.name);
+                        if (d.name.toLowerCase().localeCompare(locations[i].name.toLowerCase()) == 0) {
+                            opacity = 1;
+                        }
+                    }
+                    return opacity;
+                })
+                .style("fill", newColorCountry)
+                .attr('d', path);
+
+        }
+        else if(user.charAt(0) == "@")
+        {
+            user = user.substring(1);
+            svg.selectAll(".country")
+                .data(myCountries)
+                .style('opacity', function (d) {
+                    var opacity = 0.5;
+                    var tweets_of_the_user = retrieveTweetsForThisUser(user);
+                    var locations = findUserLocations(tweets_of_the_user);
+
+                    for (var i = 0; i < locations.length; i++) {
+                        console.log("name = " + d.name);
+                        if (d.name.toLowerCase().localeCompare(locations[i].name.toLowerCase()) == 0) {
+                            opacity = 1;
+                        }
+                    }
+                    return opacity;
+                })
+                .style("fill", newColorCountry)
+                .attr('d', path);
+        }
+
+    });
 
     function countCountrySentiment(tweets, countryName)
     {
@@ -424,7 +479,6 @@ var TiagoScript = function drawMap(){
         return result;
     }
 
-
     function getSentimentFromCountry(countryId)
     {
         var sentiment = 0.0;
@@ -447,40 +501,6 @@ var TiagoScript = function drawMap(){
         newcolor = color(sentiment);
 
         return newcolor;
-    }
-
-    function totalTweetsOfThisCountry(country)
-    {
-        var count = 0;
-        for(var i = 0; i < tweets.length; i++)
-        {
-            if (tweets[i].location.length > 0) {
-                var c1 = tweets[i].location.toLowerCase();
-                var c2 = country.toLowerCase();
-                if (c1.localeCompare(c2) == 0) {
-                    count++;
-                }
-            }
-        }
-        return count;
-    }
-
-    function totalTweetsOfThisCountryOnThisDay(country, day)
-    {
-        var count = 0;
-        for(var i = 0; i < tweets.length; i++)
-        {
-            if (tweets[i].location.length > 0) {
-                if(dateFormatter(tweets[i].time, day) == day) {
-                    var c1 = tweets[i].location.toLowerCase();
-                    var c2 = country.toLowerCase();
-                    if (c1.localeCompare(c2) == 0) {
-                        count++;
-                    }
-                }
-            }
-        }
-        return count;
     }
 
     function totalTweetsOfThisCountryOnThisDate(country, date)
@@ -544,9 +564,6 @@ var TiagoScript = function drawMap(){
         return formatDec(pos / total).toString();
     }
 
-
-
-
     function updateCountry(country)
     {
         for(var i = 0; i < country_list.length; i++)
@@ -571,25 +588,6 @@ var TiagoScript = function drawMap(){
         }
     }
 
-    function resetCountriesNotOnThisDate(date)
-    {
-        var twits_of_the_date = retrieveTweetsForThisDate(date);
-        for (var i = 0; i < country_list.length; i++)
-        {
-            for(var j = 0; j < twits_of_the_date.length; j++)
-            {
-                if(country_list[i].name.toLowerCase().localeCompare(twits_of_the_date[j].location.toLowerCase()) != 0)
-                {
-                    //reset to no data
-                    country_list[i].pos = null;
-                    country_list[i].neg = null;
-                    country_list[i].sentiment = null;
-                }
-            }
-
-        }
-    }
-
     function draw()
     {
         var err_;
@@ -609,7 +607,7 @@ var TiagoScript = function drawMap(){
                 .attr("class", "country")
                 .attr("d", path)
                 .attr('title', 'Blah')
-                .style('opacity', 0.7)
+                .style('opacity', 0.5)
                 .style("fill", newColorCountry)
                 .attr("cx", function (d) {
                     return projection([d.lon, d.lat])[0];
@@ -658,7 +656,7 @@ var TiagoScript = function drawMap(){
             .attr('d', path)
             .attr('title', 'Blah')
             //.style("fill", newColorCountry)
-            .style("opacity", 0.7)
+            .style("opacity", 0.5)
             .attr("cx", function (d) {
                 return projection([d.lon, d.lat])[0];
             })
@@ -701,7 +699,7 @@ var TiagoScript = function drawMap(){
                 }
             })
             .on('mouseout', function() {
-                d3.select(this).style('opacity', 0.7)
+                d3.select(this).style('opacity', 0.5)
                 nameTag.style('visibility', 'hidden')
             })
             .on('mouseleave',function(d,i){
