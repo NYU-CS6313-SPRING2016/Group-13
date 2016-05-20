@@ -140,8 +140,8 @@
         background: white;
         width:90%;
         height: 5%;
-        left: 1%;
-        margin-left: 5%;
+        left: 35px;
+        margin-left: 0px;
         position: relative;
     }
 
@@ -264,9 +264,12 @@
 <script src="http://d3js.org/topojson.v1.min.js"></script>
 
 <script>
+    var sliderWidth = document.getElementById('rightPanel').offsetWidth - 40 - 20;
+    
     var textBox = document.getElementById("filterBox");
     var comboBox = document.getElementById("typeofdata");
     var timeSlider = document.getElementById("timeSlider");
+    timeSlider.width = sliderWidth;
     function comboBoxOnChange(){
         changeSelectOption(comboBox.value);
 
