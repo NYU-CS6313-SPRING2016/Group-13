@@ -11,9 +11,4 @@ Tiago Machado ([tm2491@nyu.edu](mailto:tm2491@nyu.edu))
 ## Related Links:
 Link to the Demo: [http://nyu-cs6313-spring2016.github.io/Group-13-Twitter-Game-Female/](http://nyu-cs6313-spring2016.github.io/Group-13-Twitter-Game-Female/)
 
-
-
-
-
-### Note:
-If the map is not loaded or totally gray/blue at the starting, Please refresh the page. This bug rarely happens and we are working on fixing it as soon as possible.
+Link to the Video: [https://www.youtube.com/watch?v=-sh-YXDXNmE&feature=youtu.be](https://www.youtube.com/watch?v=-sh-YXDXNmE&feature=youtu.be)
