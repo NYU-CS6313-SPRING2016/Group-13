@@ -1,6 +1,6 @@
 var TiagoScript = function drawMap(){
 
-    /**VARS**/
+    /***VARS***/
     var width = document.getElementById('middlePanel').offsetWidth - 14,
         height = document.getElementById('middlePanel').offsetHeight * 0.9;
 
